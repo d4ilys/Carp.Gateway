@@ -1,0 +1,9 @@
+replicaCount: 1
+service:
+  type: NodePort
+  port: 6005
+  protocol: TCP
+  nodePort: 32717
+
+imagePullSecrets:
+- name: "private-token"

@@ -1,0 +1,6 @@
+replicaCount: 1
+service:
+  type: NodePort
+  port: 6005
+  protocol: TCP
+  nodePort: 30021
