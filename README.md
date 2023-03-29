@@ -1,6 +1,6 @@
 **前言**
 
-说到 .NET Core API Gateway 首先想到的应该是 Ocelot，生态十分成熟，支持 Kubernetes、Consul、Eureka等服务注册发现的中间件 支持Polly 进行 熔断、降级、重试等，功能十分的强大，但是在.NET 5问世后，作者貌似已经停止维护此项目.
+说到 .NET Core API Gateway 首先想到的应该是 Ocelot，生态十分成熟，支持 Kubernetes、Consul、Eureka等服务注册发现的中间件 支持Polly 进行 熔断、降级、重试等，功能十分的强大，但是在.NET 5问世后，作者貌似已经逐渐停止维护此项目.
 
 由于我们项目一直在使用Ocelot作为网关 而且已经升级到 .Net 7 基于现状 我们计划重新设计开发一个网关，经过调研发现微软官方已经提供了一个反向代理的组件**YARP**
 
