@@ -23,7 +23,7 @@ app.UseStaticFiles();
 app.UseCarp(options =>
 {
     options.AuthenticationCenter = builder.Configuration["AuthenticationCenter_Url"];  //认证中心的地址
-    options.Enable = true; //启用验证
+    options.Enable = true; //启用权限验证
 });
 
 app.MapControllers();
