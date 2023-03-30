@@ -10,7 +10,7 @@ YARP 是微软团队开发的一个反向代理**组件**， 除了常规的 htt
 
 文档地址 ：https://microsoft.github.io/reverse-proxy/
 
-经过几天的设计与编写，项目初版已经完成 其名为 **Carp** ，一个方面和Yarp有关系，另一个方面Carp在英文中是`鲤鱼`的意思，恰好本人比较热垂钓 哈哈 冥冥中自有天意，**需要注意的是 本项目还没用于生产环境进行测试，轻谨慎使用，作者也会持续更新，验证授权正在开发中。。。**。
+经过几天的设计与编写，项目初版已经完成 其名为 **Carp** ，一个方面和Yarp有关系，另一个方面Carp在英文中是`鲤鱼`的意思，恰好本人比较热垂钓 哈哈 冥冥中自有天意，**需要注意的是 本项目还没用于生产环境进行测试，请谨慎使用，如果有兴趣可以添加我的QQ 963922242 进一步交流**。
 
 Ocelot 每次负载均衡请求 Kubernertes Pod时，需要先调用一遍API Server，在我看来会对Kubernetes集群造成影响。
 
@@ -23,21 +23,27 @@ Ocelot 每次负载均衡请求 Kubernertes Pod时，需要先调用一遍API Se
 > 适配Kubernetes
 
 ~~~C#
+using Com.Ctrip.Framework.Apollo;
+using Com.Ctrip.Framework.Apollo.Core;
 using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddCarp().AddKubernetes();  //添加Kubernetes支持
 
-builder.Services.AddCarp().AddKubernetes();  //添加K8s支持
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.UseAuthorization();
+app.UseStaticFiles();
 
-app.UseCarp();	//添加中间件
+app.UseCarp(options =>
+{
+    options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
+    options.Enable = true; //启用权限验证
+});
 
 app.MapControllers();
 
@@ -45,17 +51,16 @@ app.Run("http://*:6005");
 ~~~
 
 ~~~json
-"Carp": {
+  "Carp": {
     "Namespace": "dev",
     "Routes": [
       {
         "Descriptions": "基础服务集群",
         "ServiceName": "basics",
-        "PermissionsValidation": true,
+        "PermissionsValidation": true,  //开启鉴权验证
         "PathTemplate": "/Basics/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
-
       },
       {
         "Descriptions": "主业务服务集群",
@@ -64,29 +69,59 @@ app.Run("http://*:6005");
         "PathTemplate": "/Business/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
+      },
+      {
+        "Descriptions": "登录服务集群",
+        "ServiceName": "login",
+        "PermissionsValidation": false, //登录服务不用开启鉴权
+        "PathTemplate": "/Login/{**catch-all}",
+        "LoadBalancerOptions": "PowerOfTwoChoices",
+        "DownstreamScheme": "http"
+      },
+      {
+        "Descriptions": "日志服务的集群",
+        "ServiceName": "logs",
+        "PermissionsValidation": false,
+        "PathTemplate": "/Log/{**catch-all}",
+        "LoadBalancerOptions": "PowerOfTwoChoices",
+        "DownstreamScheme": "http"
+      },
+      {
+        "Descriptions": "App服务的集群",
+        "ServiceName": "appservice",
+        "PermissionsValidation": true,
+        "PathTemplate": "/AppService/{**catch-all}",
+        "LoadBalancerOptions": "PowerOfTwoChoices",
+        "DownstreamScheme": "http"
       }
-    ] 
-  }
+    ]
+  },
 ~~~
 
 > 普通代理模式
 
 ~~~c#
+using Com.Ctrip.Framework.Apollo;
+using Com.Ctrip.Framework.Apollo.Core;
 using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddCarp().AddNormal();  //普通代理
 
-builder.Services.AddCarp().AddNormal();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.UseAuthorization();
+app.UseStaticFiles();
 
-app.UseCarp();
+app.UseCarp(options =>
+{
+    options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
+    options.Enable = true; //启用权限验证
+});
 
 app.MapControllers();
 
