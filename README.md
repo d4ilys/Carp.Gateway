@@ -20,6 +20,59 @@ Ocelot 每次负载均衡请求 Kubernertes Pod时，需要先调用一遍API Se
 
 ![1d7b5ed2623bf5349b8e148947bec5d](https://user-images.githubusercontent.com/54463101/228444662-a3b03a25-2a62-40e2-a068-a711de124535.png)
 
+#### Quick Start 
+
+* 创建 .NET 6.0 WebAPI
+
+* NuGet 安装Carp.Gateway
+
+~~~c#
+Install-Package Carp.Gateway
+~~~
+
+* Program.cs
+
+~~~C#
+using Daily.Carp.Extension;
+
+var builder = WebApplication.CreateBuilder(args).InjectCarp();  //注入配置
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+
+builder.Services.AddCarp().AddNormal();  
+
+var app = builder.Build();
+
+app.UseAuthorization();
+
+app.UseCarp();
+
+app.MapControllers();
+
+app.Run();
+~~~
+
+* appsettings.json
+
+~~~json
+ "Carp": {
+    "Routes": [
+      {
+        "Descriptions": "简单的例子",
+        "ServiceName": "Demo",
+        "PathTemplate": "{**catch-all}",
+        "DownstreamHostAndPorts": [ "www.baidu.com", "www.jd.com" ]
+      }
+    ]
+  },
+~~~
+
+* 运行项目观看效果把~
+
+#### Kubernetes
+
 > 适配Kubernetes
 
 ~~~shell
@@ -102,7 +155,7 @@ app.Run("http://*:6005");
   },
 ~~~
 
-> 普通代理模式
+#### 普通代理模式
 
 ~~~shell
 Install-Package Carp.Gateway
