@@ -1,13 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>Daily</Authors>
+		<Version>0.0.1-alpha.20230331</Version>
+		<Description>API网关Carp.Gateway Kubernetes扩展包</Description>
+		<PackageId>Carp.Gateway.Provider.Kubernetes</PackageId>
+		<Product>Carp.Gateway.Provider.Kubernetes</Product>
+		<AssemblyName>Carp.Gateway.Provider.Kubernetes</AssemblyName>
+		<PackageProjectUrl>https://github.com/d4ilys/Carp.Gateway</PackageProjectUrl>
+		<IsPackable>true</IsPackable>
 		<PackageIcon>logo.png</PackageIcon>
+		<RepositoryUrl>https://github.com/d4ilys/Carp.Gateway.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<!--<PackageReference Include="Carp.Gateway" Version="0.0.1-alpha.20230331" />-->
 		<PackageReference Include="KubeClient.Extensions.DependencyInjection" Version="2.4.10" />
 	</ItemGroup>
 
@@ -15,6 +28,9 @@
 		<ProjectReference Include="..\Daily.Carp\Daily.Carp.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+		<None Include="logo.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 </Project>

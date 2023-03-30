@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daily.Carp", "Daily.Carp\Daily.Carp.csproj", "{3490293E-B914-4925-9E49-22A276C23455}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Daily.Carp", "Daily.Carp\Daily.Carp.csproj", "{3490293E-B914-4925-9E49-22A276C23455}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daily.Carp.Provider.Kubernetes", "Daily.Carp.Provider.Kubernetes\Daily.Carp.Provider.Kubernetes.csproj", "{A79C3F2C-5E85-458B-ACB5-8355855254B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Daily.Carp.Provider.Kubernetes", "Daily.Carp.Provider.Kubernetes\Daily.Carp.Provider.Kubernetes.csproj", "{A79C3F2C-5E85-458B-ACB5-8355855254B0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{01FD0D36-C46A-4AE4-B106-B5B7EFF59C05}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{DDA69FDC-2FFC-4840-9EF6-484860EF95C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{DDA69FDC-2FFC-4840-9EF6-484860EF95C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

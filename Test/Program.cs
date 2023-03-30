@@ -1,6 +1,7 @@
 using Com.Ctrip.Framework.Apollo;
 using Com.Ctrip.Framework.Apollo.Core;
 using Daily.Carp.Extension;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
@@ -10,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args).InjectCarp();
 builder.Configuration.AddApollo(builder.Configuration.GetSection("Apollo"))
     .AddDefault()
     .AddNamespace(ConfigConsts.NamespaceApplication);
+
 
 builder.Services.AddCarp().AddKubernetes(); 
 
@@ -30,6 +32,12 @@ builder.Services.AddCors(options =>
 
 #endregion 支持跨域  所有的Api都支持跨域
 
+builder.WebHost.UseKestrel(options =>
+{
+    var x509ca = new X509Certificate2(File.ReadAllBytes(@"jtys.cqyt.petrochina.pfx"));
+    options.ListenAnyIP(6005, listenOptions => listenOptions.UseHttps(x509ca));
+});
+
 var app = builder.Build();
 
 app.UseStaticFiles();
@@ -44,4 +52,4 @@ app.UseCarp(options =>
 
 app.MapControllers();
 
-app.Run("http://*:6005");
+app.Run();

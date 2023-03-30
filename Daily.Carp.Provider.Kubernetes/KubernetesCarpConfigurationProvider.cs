@@ -85,6 +85,7 @@ namespace Daily.Carp.Provider.Kubernetes
                 var client = provider.GetService<IKubeApiClient>();
                 var clientV1 = new EndPointClientV1(client: client);
                 var endpointsV1 = clientV1.Get(serviceName, namespaces).ConfigureAwait(true).GetAwaiter().GetResult();
+                var carpRouteConfig = CarpApp.GetCarpConfig().Routes.First(c => c.ServiceName == serviceName);
                 foreach (var item in endpointsV1.Subsets)
                 {
                     try
@@ -92,6 +93,10 @@ namespace Daily.Carp.Provider.Kubernetes
                         var port = item.Ports.First().Port;
                         foreach (var endpointAddressV1 in item.Addresses)
                         {
+                            if (carpRouteConfig.Port != 0)
+                            {
+                                port = carpRouteConfig.Port;
+                            }
                             var host = $"{endpointAddressV1.Ip}:{port}";
                             list.Add(host);
                         }

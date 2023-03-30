@@ -26,41 +26,42 @@ namespace Daily.Carp.Extension
             var optionsInternal = new CarpAppOptions();
             optionsInternal.app = app;
             options?.Invoke(optionsInternal);
-            //自定义访问
-            if (optionsInternal.CustomAuthentication != null)
+            if (optionsInternal.Enable)
             {
-                app.Use(async (context, next) =>
+                //自定义访问
+                if (optionsInternal.CustomAuthentication != null)
                 {
-                    var pass = optionsInternal.CustomAuthentication?.Invoke();
+                    app.Use(async (context, next) =>
+                    {
+                        var pass = optionsInternal.CustomAuthentication?.Invoke();
 
-                    if (pass != null && pass == true)
-                    {
-                        await next();
-                    }
-                    else
-                    {
-                        //直接无权限
-                        context.Response.StatusCode = 401;
-                        context.Response.ContentType = "text/plain; charset=utf-8";
-                        //设置stream存放ResponseBody
-                        using (var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes("Unrequited..")))
+                        if (pass != null && pass == true)
                         {
-                            await memoryStream.CopyToAsync(context.Response.Body);
+                            await next();
                         }
-                    }
-                });
-            }
-            else
-            {
-                app.UseCarpAuthenticationMiddleware(optionsInternal);
+                        else
+                        {
+                            //直接无权限
+                            context.Response.StatusCode = 401;
+                            context.Response.ContentType = "text/plain; charset=utf-8";
+                            //设置stream存放ResponseBody
+                            using (var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes("Unrequited..")))
+                            {
+                                await memoryStream.CopyToAsync(context.Response.Body);
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    app.UseCarpAuthenticationMiddleware(optionsInternal);
+                }
             }
 
             app.MapReverseProxy();
 
             return app;
         }
-
-
     }
 
     public class CarpAppOptions

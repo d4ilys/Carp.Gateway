@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
+using Yarp.ReverseProxy.Forwarder;
 using static Daily.Carp.Internel.CarpApp;
 
 namespace Daily.Carp.Configuration
@@ -80,7 +81,12 @@ namespace Daily.Carp.Configuration
                     {
                         ClusterId = clusterId,
                         LoadBalancingPolicy = service.LoadBalancerOptions,
-                        Destinations = destinations
+                        Destinations = destinations,
+                        HttpRequest = service.HttpVersion == "2" ? null : new ForwarderRequestConfig()
+                        {
+                            Version = new Version(service.HttpVersion),
+                            VersionPolicy = HttpVersionPolicy.RequestVersionExact
+                        }
                     };
                     clusterConfigs.Add(clusterConfig);
 
