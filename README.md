@@ -22,6 +22,10 @@ Ocelot 每次负载均衡请求 Kubernertes Pod时，需要先调用一遍API Se
 
 > 适配Kubernetes
 
+~~~shell
+Install-Package Carp.Gateway.Provider.Kubernetes
+~~~
+
 ~~~C#
 using Com.Ctrip.Framework.Apollo;
 using Com.Ctrip.Framework.Apollo.Core;
@@ -99,6 +103,10 @@ app.Run("http://*:6005");
 ~~~
 
 > 普通代理模式
+
+~~~shell
+Install-Package Carp.Gateway
+~~~
 
 ~~~c#
 using Com.Ctrip.Framework.Apollo;
