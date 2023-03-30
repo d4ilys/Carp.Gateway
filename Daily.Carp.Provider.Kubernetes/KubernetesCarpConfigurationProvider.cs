@@ -32,14 +32,15 @@ namespace Daily.Carp.Provider.Kubernetes
 
         private void RefreshWarp()
         {
-            var carpConfig = GetCarpConfig();
+            var carpConfig = CarpApp.GetCarpConfig();
+            Console.WriteLine(JsonConvert.SerializeObject(carpConfig));
             Refresh((serviceName, provider) => GetPods(serviceName, carpConfig.Namespace, provider));
         }
 
         //监控Pod更新Yarp配置
         private void Watch()
         {
-            var carpConfig = GetCarpConfig();
+            var carpConfig = CarpApp.GetCarpConfig();
             var eventStream = ServiceDiscovery.GetService<IKubeApiClient>().PodsV1().WatchAll(kubeNamespace: carpConfig.Namespace);
             eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(
                 async subsequentEvent =>
@@ -52,7 +53,6 @@ namespace Daily.Carp.Provider.Kubernetes
                         {
                             //延迟更新Config
                             await Task.Delay(2000);
-                            Console.WriteLine("监听到POD修改..");
                             RefreshWarp();
                         }
                     }
@@ -87,12 +87,21 @@ namespace Daily.Carp.Provider.Kubernetes
                 var endpointsV1 = clientV1.Get(serviceName, namespaces).ConfigureAwait(true).GetAwaiter().GetResult();
                 foreach (var item in endpointsV1.Subsets)
                 {
-                    var port = item.Ports.First().Port;
-                    foreach (var endpointAddressV1 in item.Addresses)
+                    try
                     {
-                        var host = $"{endpointAddressV1.Ip}:{port}";
-                        list.Add(host);
+                        var port = item.Ports.First().Port;
+                        foreach (var endpointAddressV1 in item.Addresses)
+                        {
+                            var host = $"{endpointAddressV1.Ip}:{port}";
+                            list.Add(host);
+                        }
                     }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"{serviceName}出现异常：{e}");
+                        continue;
+                    }
+                  
                 }
 
                 return list;

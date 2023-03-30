@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
+using static Daily.Carp.Internel.CarpApp;
 
 namespace Daily.Carp.Configuration
 {
@@ -61,50 +62,51 @@ namespace Daily.Carp.Configuration
             //}));
             foreach (var service in carpConfig.Routes)
             {
-                var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
-                var address = addressFunc.Invoke(service.ServiceName, ServiceDiscovery.ServiceProvider);
-                foreach (var item in address)
+                try
                 {
-                    DestinationConfig destinationConfig = new DestinationConfig
+                    var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
+                    var address = addressFunc.Invoke(service.ServiceName, ServiceDiscovery.ServiceProvider);
+                    foreach (var item in address)
                     {
-                        Address = $"{service.DownstreamScheme}://{item}"
-                    };
-                    destinations.Add($"{item}", destinationConfig);
-                }
-
-                var clusterId = $"ClusterId-{Guid.NewGuid()}";
-                ClusterConfig clusterConfig = new ClusterConfig
-                {
-                    ClusterId = clusterId,
-                    LoadBalancingPolicy = service.LoadBalancerOptions,
-                    Destinations = destinations
-                };
-                clusterConfigs.Add(clusterConfig);
-
-                var routeId = $"RouteId-{Guid.NewGuid()}";
-                RouteConfig routeConfig = new RouteConfig
-                {
-                    RouteId = routeId,
-                    ClusterId = clusterId,
-                    Match = new RouteMatch
-                    {
-                        Path = service.PathTemplate,
+                        DestinationConfig destinationConfig = new DestinationConfig
+                        {
+                            Address = $"{service.DownstreamScheme}://{item}"
+                        };
+                        destinations.Add($"{item}", destinationConfig);
                     }
-                };
-                routeConfigs.Add(routeConfig);
+
+                    var clusterId = $"ClusterId-{Guid.NewGuid()}";
+                    ClusterConfig clusterConfig = new ClusterConfig
+                    {
+                        ClusterId = clusterId,
+                        LoadBalancingPolicy = service.LoadBalancerOptions,
+                        Destinations = destinations
+                    };
+                    clusterConfigs.Add(clusterConfig);
+
+                    var routeId = $"RouteId-{Guid.NewGuid()}";
+                    RouteConfig routeConfig = new RouteConfig
+                    {
+                        RouteId = routeId,
+                        ClusterId = clusterId,
+                        Match = new RouteMatch
+                        {
+                            Path = service.PathTemplate,
+                        }
+                    };
+                    routeConfigs.Add(routeConfig);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"{service.Descriptions},{e}");
+
+                    continue;
+                }
+               
             }
 
             return new Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>(clusterConfigs, routeConfigs);
         }
 
-        /// <summary>
-        /// 读取配置
-        /// </summary>
-        /// <returns></returns>
-        public CarpConfig GetCarpConfig()
-        {
-            var carpConfigs = CarpApp.Configuration.GetSection("Carp").Get<CarpConfig>();
-            return carpConfigs;
-        }
     }
 }

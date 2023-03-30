@@ -1,5 +1,6 @@
 ﻿using Daily.Carp.Internel;
 using Daily.Carp.Yarp;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Yarp.ReverseProxy.Configuration;
@@ -10,6 +11,7 @@ namespace Test.Controllers
     [ApiController]
     public class HomeController : ControllerBase
     {
+        //[Authorize]
         [HttpGet]
         public object GetAll()
         {
@@ -20,6 +22,11 @@ namespace Test.Controllers
             {
                 routeConfigs, readOnlyList
             };
+        }
+        [HttpGet]
+        public object Test()
+        {
+            return "1";
         }
 
         [HttpGet]

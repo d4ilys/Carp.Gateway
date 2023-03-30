@@ -1,17 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PackageIcon>logo.png</PackageIcon>
+	</PropertyGroup>
 
-  <ItemGroup>
-	  <PackageReference Include="KubeClient.Extensions.DependencyInjection" Version="2.4.10" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="KubeClient.Extensions.DependencyInjection" Version="2.4.10" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Daily.Carp\Daily.Carp.csproj" />
-  </ItemGroup>
-
+	<ItemGroup>
+		<ProjectReference Include="..\Daily.Carp\Daily.Carp.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="../../logo.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
 </Project>

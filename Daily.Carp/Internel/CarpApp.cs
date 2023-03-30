@@ -20,5 +20,23 @@ namespace Daily.Carp.Internel
         {
             get; internal set;
         }
+
+
+        public static CarpConfig? CarpConfig { get; set; } =  null;
+
+        /// <summary>
+        /// 读取Carp配置
+        /// </summary>
+        /// <returns></returns>
+        public static CarpConfig GetCarpConfig()
+        {
+            if (CarpConfig == null)
+            {
+                var c = Configuration.GetSection("Carp").Get<CarpConfig>();
+                CarpConfig = c;
+                return c;
+            }
+            return CarpConfig;
+        }
     }
 }

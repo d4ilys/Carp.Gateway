@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Daily.Carp.Configuration;
+﻿using Daily.Carp.Configuration;
 using Daily.Carp.Internel;
 using Daily.Carp.Yarp;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +9,15 @@ namespace Daily.Carp.Extension
     public static class CarpExtension
     {
         public static ICarpBuilder AddCarp(this IServiceCollection service)
-        {
-            
+        {   
+            //HttpClientFactory
+            service.AddHttpClient("nossl").ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                return new HttpClientHandler()
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, error) => true
+                };
+            });
             ICarpBuilder builder = new CarpBuilder();
             builder.Service = service;
             builder.ProxyConfigProvider = new CarpProxyConfigProvider();
@@ -23,7 +25,7 @@ namespace Daily.Carp.Extension
             service.AddReverseProxy().LoadFormKubernetes(builder.ProxyConfigProvider);
             return builder;
         }
-
+        //通过K8S加载
         internal static IReverseProxyBuilder LoadFormKubernetes(this IReverseProxyBuilder builder,
             IProxyConfigProvider configProvider)
         {
@@ -41,6 +43,8 @@ namespace Daily.Carp.Extension
             provider.Initialize();
         }
     }
+
+  
 
     public interface ICarpBuilder
     {

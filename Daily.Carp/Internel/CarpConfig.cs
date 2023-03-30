@@ -8,14 +8,21 @@ namespace Daily.Carp.Internel
 {
     public class CarpConfig
     {
+        /// <summary>
+        /// Kubernetes 命名空间
+        /// </summary>
         public string Namespace { get; set; } = "default";
 
+        /// <summary>
+        /// 集群配置
+        /// </summary>
         public List<CarpRouteConfig> Routes
         {
             get; set;
         }
     }
 
+    
     public class CarpRouteConfig
     {
         /// <summary>

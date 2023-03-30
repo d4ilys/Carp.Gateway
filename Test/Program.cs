@@ -1,19 +1,30 @@
+using Com.Ctrip.Framework.Apollo;
+using Com.Ctrip.Framework.Apollo.Core;
 using Daily.Carp.Extension;
-using Yarp.ReverseProxy.Configuration;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+
+builder.Configuration.AddApollo(builder.Configuration.GetSection("Apollo"))
+    .AddDefault()
+    .AddNamespace(ConfigConsts.NamespaceApplication);
 
 builder.Services.AddCarp().AddKubernetes();
 
+builder.Services.AddControllers();
+
+
 var app = builder.Build();
 
-app.UseAuthorization();
+app.UseStaticFiles();
 
-app.UseCarp();
+app.UseCarp(options =>
+{
+    options.AuthenticationCenter = builder.Configuration["AuthenticationCenter_Url"];  //认证中心的地址
+    options.Enable = true; //启用验证
+});
 
 app.MapControllers();
 

@@ -1,13 +1,36 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>Daily</Authors>
+		<Version>0.0.1-alpha.20230330</Version>
+		<Description>基于Yarp实现的API网关Gateway,支持Kubernetes</Description>
+		<PackageId>Carp.Gateway</PackageId>
+		<Product>Carp.Gateway</Product>
+		<AssemblyName>Carp.Gateway</AssemblyName>
+		<PackageProjectUrl>https://github.com/d4ilys/Carp.Gateway</PackageProjectUrl>
+		<IsPackable>true</IsPackable>
+		<PackageIcon>logo.png</PackageIcon>
+		<RepositoryUrl>https://github.com/d4ilys/Carp.Gateway.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Yarp.ReverseProxy" Version="2.0.0" />
-  </ItemGroup>
-
+	<ItemGroup>
+		<!--<PackageReference Include="IdentityServer4" Version="4.1.2" />-->
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
+		<PackageReference Include="Yarp.ReverseProxy" Version="2.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="logo.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 </Project>
