@@ -98,7 +98,6 @@ namespace Daily.Carp.Provider.Kubernetes
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"{serviceName}出现异常：{e}");
                         continue;
                     }
                   

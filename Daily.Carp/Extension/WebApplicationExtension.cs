@@ -1,8 +1,10 @@
 ﻿using Daily.Carp.Internel;
+using Daily.LinkTracking;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace Daily.Carp.Extension
 {
@@ -50,7 +52,7 @@ namespace Daily.Carp.Extension
             }
             else
             {
-                app.UseCarpAuthorization(optionsInternal);
+                app.UseCarpAuthenticationMiddleware(optionsInternal);
             }
 
             app.MapReverseProxy();
@@ -59,84 +61,6 @@ namespace Daily.Carp.Extension
         }
 
 
-        private static WebApplication UseCarpAuthorization(this WebApplication app, CarpAppOptions options)
-        {
-            app.Use(async (context, next) =>
-            {
-                var flag = true;
-
-                try
-                {
-                    // 获取所有未成功验证的需求
-                    var serviceName = "";
-                    try
-                    {
-                        serviceName = context.Request.Path.Value.Split("/")[1];
-                    }
-                    catch
-                    {
-                    }
-
-                    string GetTempServiceName(string temp)
-                    {
-                        var strings = temp.Split("/");
-                        return temp.StartsWith("/") ? strings[1] : strings[0];
-                    }
-
-                    var needVerification =
-                        CarpApp.CarpConfig.Routes.Any(c =>
-                            c.PermissionsValidation && GetTempServiceName(c.ServiceName.ToLower()) == serviceName.ToLower());
-                    //需要验证
-                    if (needVerification)
-                    {
-                        var httpClientFactory = context.RequestServices.GetService<IHttpClientFactory>();
-                        var httpClient = httpClientFactory.CreateClient("nossl");
-                        var token = context.Request.Headers["Authorization"];
-                        var asstoken = "";
-                        if (!(token.Count == 0))
-                        {
-                            asstoken = token.ToString();
-                            httpClient.DefaultRequestHeaders.Add("Authorization", asstoken);
-                            //去鉴权中心 校验token是否合法
-                            var httpResponseMessage =
-                                await httpClient.GetAsync(
-                                    $"{options.AuthenticationCenter}/connect/userinfo");
-                            flag = httpResponseMessage.StatusCode == HttpStatusCode.OK;
-                        }
-                        else
-                        {
-                            flag = false;
-                        }
-
-
-                    }
-
-                }
-                catch
-                {
-                    flag = false;
-                }
-            
-                if (flag)
-                {
-                    await next();
-                }
-                else
-                {
-                    //直接无权限
-                    context.Response.StatusCode = 401;
-                    context.Response.ContentType = "text/plain; charset=utf-8";
-                    //设置stream存放ResponseBody
-                    using (var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes("Unrequited..")))
-                    {
-                        await memoryStream.CopyToAsync(context.Response.Body);
-                    }
-                }
-            });
-
-
-            return app;
-        }
     }
 
     public class CarpAppOptions

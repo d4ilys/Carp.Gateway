@@ -15,10 +15,26 @@ builder.Services.AddCarp().AddKubernetes();
 
 builder.Services.AddControllers();
 
+#region 支持跨域  所有的Api都支持跨域
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder.SetIsOriginAllowed((x) => true)
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+#endregion 支持跨域  所有的Api都支持跨域
 
 var app = builder.Build();
 
 app.UseStaticFiles();
+
+app.UseCors("CorsPolicy");
 
 app.UseCarp(options =>
 {

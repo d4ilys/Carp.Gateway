@@ -96,10 +96,8 @@ namespace Daily.Carp.Configuration
                     };
                     routeConfigs.Add(routeConfig);
                 }
-                catch (Exception e)
+                catch
                 {
-                    Console.WriteLine($"{service.Descriptions},{e}");
-
                     continue;
                 }
                
