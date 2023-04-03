@@ -13,7 +13,7 @@ builder.Configuration.AddApollo(builder.Configuration.GetSection("Apollo"))
     .AddNamespace(ConfigConsts.NamespaceApplication);
 
 
-builder.Services.AddCarp().AddKubernetes(); 
+builder.Services.AddCarp().AddKubernetes();
 
 builder.Services.AddControllers();
 

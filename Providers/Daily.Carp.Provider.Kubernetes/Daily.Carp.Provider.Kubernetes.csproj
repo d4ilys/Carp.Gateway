@@ -25,12 +25,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Daily.Carp\Daily.Carp.csproj" />
-	</ItemGroup>
-	<ItemGroup>
 		<None Include="logo.png">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Daily.Carp\Daily.Carp.csproj" />
 	</ItemGroup>
 </Project>
