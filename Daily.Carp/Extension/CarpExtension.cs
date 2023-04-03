@@ -22,7 +22,7 @@ namespace Daily.Carp.Extension
             ICarpBuilder builder = new CarpBuilder();
             builder.Service = service;
             builder.ProxyConfigProvider = new CarpProxyConfigProvider();
-            ServiceDiscovery.Services.AddSingleton(builder.ProxyConfigProvider);
+            CarpApp.Services.AddSingleton(builder.ProxyConfigProvider);
             service.AddReverseProxy()
                 .LoadFormKubernetes(builder.ProxyConfigProvider);
             return builder;

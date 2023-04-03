@@ -41,7 +41,7 @@ namespace Daily.Carp.Provider.Kubernetes
         private void Watch()
         {
             var carpConfig = CarpApp.GetCarpConfig();
-            var eventStream = ServiceDiscovery.GetService<IKubeApiClient>().PodsV1().WatchAll(kubeNamespace: carpConfig.Namespace);
+            var eventStream = CarpApp.GetService<IKubeApiClient>().PodsV1().WatchAll(kubeNamespace: carpConfig.Namespace);
             eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(
                 async subsequentEvent =>
                 {

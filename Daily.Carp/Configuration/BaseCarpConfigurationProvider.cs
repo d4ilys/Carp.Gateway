@@ -25,7 +25,7 @@ namespace Daily.Carp.Configuration
 
         public void AddService(Action<IServiceCollection>? action = null)
         {
-            action?.Invoke(ServiceDiscovery.Services);
+            action?.Invoke(CarpApp.Services);
         }
 
         /// <summary>
@@ -35,12 +35,12 @@ namespace Daily.Carp.Configuration
         {
             ServiceDiscoveryBuild();
             var result = YarpAdapter(addressFunc);
-            ServiceDiscovery.GetService<CarpProxyConfigProvider>().Refresh(result.Item2, result.Item1);
+            CarpApp.GetService<CarpProxyConfigProvider>().Refresh(result.Item2, result.Item1);
         }
 
         private void ServiceDiscoveryBuild()
         {
-            ServiceDiscovery.BuildServiceProvider();
+            CarpApp.BuildServiceProvider();
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Daily.Carp.Configuration
                 try
                 {
                     var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
-                    var address = addressFunc.Invoke(service.ServiceName, ServiceDiscovery.ServiceProvider);
+                    var address = addressFunc.Invoke(service.ServiceName, CarpApp.ServiceProvider);
                     foreach (var item in address)
                     {
                         DestinationConfig destinationConfig = new DestinationConfig
