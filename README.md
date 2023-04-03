@@ -108,13 +108,15 @@ app.Run("http://*:6005");
 ~~~
 
 ~~~json
-  "Carp": {
-    "Namespace": "dev",
+ "Carp": {
+    "Kubernetes": {
+      "Namespace": "dev"
+    },
     "Routes": [
       {
         "Descriptions": "基础服务集群",
         "ServiceName": "basics",
-        "PermissionsValidation": true,  //开启鉴权验证
+        "PermissionsValidation": true,
         "PathTemplate": "/Basics/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
@@ -129,7 +131,7 @@ app.Run("http://*:6005");
       },
       {
         "Descriptions": "登录服务集群",
-        "ServiceName": "login",
+        "ServiceName": "lgcenter",
         "PermissionsValidation": false, //登录服务不用开启鉴权
         "PathTemplate": "/Login/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
@@ -152,7 +154,56 @@ app.Run("http://*:6005");
         "DownstreamScheme": "http"
       }
     ]
-  },
+  }
+~~~
+
+#### Consul
+
+~~~c#
+using Com.Ctrip.Framework.Apollo;
+using Com.Ctrip.Framework.Apollo.Core;
+using Daily.Carp.Extension;
+
+var builder = WebApplication.CreateBuilder(args).InjectCarp();
+
+// Add services to the container.
+
+builder.Services.AddCarp().AddConsul();  //添加Consul支持
+
+builder.Services.AddControllers();
+
+var app = builder.Build();
+
+app.UseStaticFiles();
+
+app.UseCarp(options =>
+{
+    options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
+    options.Enable = true; //启用权限验证
+});
+
+app.MapControllers();
+
+app.Run("http://*:6005");
+~~~
+
+~~~json
+  "Carp": {
+    "Consul": {
+      "Host": "localhost",
+      "Port": 8500,
+      "Protocol": "http",
+      "Token": ""
+    },
+    "Routes": [
+      {
+        "Descriptions": "简单的例子",
+        "ServiceName": "DemoService",
+        "LoadBalancerOptions": "RoundRobin",
+        "PathTemplate": "basics/{**catch-all}"
+      }
+    ]
+  }
 ~~~
 
 #### 普通代理模式

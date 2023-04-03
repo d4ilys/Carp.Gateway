@@ -9,6 +9,7 @@ using Timer = System.Timers.Timer;
 using Microsoft.Extensions.DependencyInjection;
 using Daily.Carp.Yarp;
 using Daily.Carp.Extension;
+using Daily.Carp.Feature;
 using Microsoft.Extensions.Configuration;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
@@ -33,15 +34,14 @@ namespace Daily.Carp.Provider.Kubernetes
         private void RefreshWarp()
         {
             var carpConfig = CarpApp.GetCarpConfig();
-            Console.WriteLine(JsonConvert.SerializeObject(carpConfig));
-            Refresh((serviceName, provider) => GetPods(serviceName, carpConfig.Namespace, provider));
+            Refresh((serviceName, provider) => GetPods(serviceName, carpConfig.Kubernetes.Namespace, provider));
         }
 
         //监控Pod更新Yarp配置
         private void Watch()
         {
             var carpConfig = CarpApp.GetCarpConfig();
-            var eventStream = CarpApp.GetService<IKubeApiClient>().PodsV1().WatchAll(kubeNamespace: carpConfig.Namespace);
+            var eventStream = CarpApp.GetService<IKubeApiClient>().PodsV1().WatchAll(kubeNamespace: carpConfig.Kubernetes.Namespace);
             eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(
                 async subsequentEvent =>
                 {
@@ -77,11 +77,11 @@ namespace Daily.Carp.Provider.Kubernetes
         }
 
         //api server 获取pod 
-        private List<string> GetPods(string serviceName, string namespaces, IServiceProvider provider)
+        private List<Service> GetPods(string serviceName, string namespaces, IServiceProvider provider)
         {
             lock (lock_obj)
             {
-                var list = new List<string>();
+                var services = new List<Service>();
                 var client = provider.GetService<IKubeApiClient>();
                 var clientV1 = new EndPointClientV1(client: client);
                 var endpointsV1 = clientV1.Get(serviceName, namespaces).ConfigureAwait(true).GetAwaiter().GetResult();
@@ -97,8 +97,14 @@ namespace Daily.Carp.Provider.Kubernetes
                             {
                                 port = carpRouteConfig.Port;
                             }
+                            
                             var host = $"{endpointAddressV1.Ip}:{port}";
-                            list.Add(host);
+                            services.Add(new Service()
+                            {
+                                Host = endpointAddressV1.Ip,
+                                Port = port,
+                                Protocol = carpRouteConfig.DownstreamScheme
+                            });
                         }
                     }
                     catch (Exception e)
@@ -108,7 +114,7 @@ namespace Daily.Carp.Provider.Kubernetes
                   
                 }
 
-                return list;
+                return services;
             }
         }
     }

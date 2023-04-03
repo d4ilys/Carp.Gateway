@@ -1,15 +1,10 @@
-﻿using Daily.Carp.Extension;
-using Daily.Carp.Internel;
+﻿using Daily.Carp;
+using Daily.Carp.Extension;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using System.Collections;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Text;
-using System.Text.Json;
 
 namespace Daily.LinkTracking
 {

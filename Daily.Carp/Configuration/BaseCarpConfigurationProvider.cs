@@ -1,5 +1,4 @@
-﻿using Daily.Carp.Internel;
-using Daily.Carp.Yarp;
+﻿using Daily.Carp.Yarp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +7,11 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading.Tasks;
+using Daily.Carp.Feature;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
-using static Daily.Carp.Internel.CarpApp;
 
 namespace Daily.Carp.Configuration
 {
@@ -31,7 +30,7 @@ namespace Daily.Carp.Configuration
         /// <summary>
         /// 刷新配置
         /// </summary>
-        public virtual void Refresh(Func<string, IServiceProvider, IEnumerable<string>> addressFunc)
+        public virtual void Refresh(Func<string, IServiceProvider, IEnumerable<Service>> addressFunc)
         {
             ServiceDiscoveryBuild();
             var result = YarpAdapter(addressFunc);
@@ -48,14 +47,14 @@ namespace Daily.Carp.Configuration
         /// </summary>
         /// <returns></returns>
         private Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>> YarpAdapter(
-            Func<string, IServiceProvider, IEnumerable<string>> addressFunc)
+            Func<string, IServiceProvider, IEnumerable<Service>> addressFunc)
         {
             var clusterConfigs = new List<ClusterConfig>();
 
             var routeConfigs = new List<RouteConfig>();
 
             //获取配置
-            var carpConfig = GetCarpConfig();
+            var carpConfig = CarpApp.GetCarpConfig();
 
             //Console.WriteLine(JsonSerializer.Serialize(carpConfig, new JsonSerializerOptions()
             //{
@@ -71,7 +70,7 @@ namespace Daily.Carp.Configuration
                     {
                         DestinationConfig destinationConfig = new DestinationConfig
                         {
-                            Address = $"{service.DownstreamScheme}://{item}"
+                            Address = item.ToString()
                         };
                         destinations.Add($"{item}", destinationConfig);
                     }

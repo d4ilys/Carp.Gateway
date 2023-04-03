@@ -1,7 +1,8 @@
-﻿using Daily.Carp.Yarp;
+﻿using Daily.Carp.Feature;
+using Daily.Carp.Yarp;
 using Microsoft.Extensions.Configuration;
 
-namespace Daily.Carp.Internel
+namespace Daily.Carp
 {
     public partial class CarpApp
     {

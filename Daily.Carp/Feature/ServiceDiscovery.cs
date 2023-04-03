@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Daily.Carp.Internel
+namespace Daily.Carp
 {
     public partial class CarpApp
     {

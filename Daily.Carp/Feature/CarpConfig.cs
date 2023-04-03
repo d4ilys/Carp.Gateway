@@ -1,11 +1,10 @@
-﻿namespace Daily.Carp.Internel
+﻿namespace Daily.Carp
 {
     public class CarpConfig
     {
-        /// <summary>
-        /// Kubernetes 命名空间
-        /// </summary>
-        public string Namespace { get; set; } = "default";
+        public Kubernetes Kubernetes { get; set; } = new Kubernetes();
+
+        public Consul Consul { get; set; } = new Consul();
 
         /// <summary>
         /// 集群配置
@@ -13,6 +12,21 @@
         public List<CarpRouteConfig> Routes { get; set; }
     }
 
+    public class Kubernetes
+    {
+        /// <summary>
+        /// Kubernetes 命名空间
+        /// </summary>
+        public string Namespace { get; set; } = "default";
+    }
+
+    public class Consul
+    {
+        public string Protocol { get; }
+        public string Host { get; }
+        public int Port { get; }
+        public string Token { get; }
+    }
 
     public class CarpRouteConfig
     {
