@@ -24,9 +24,9 @@ namespace Daily.Carp.Extension
         public static WebApplication UseCarp(this WebApplication app, Action<CarpAppOptions>? options = null)
         {
             var optionsInternal = new CarpAppOptions();
-            optionsInternal.app = app;
+            optionsInternal.App = app;
             options?.Invoke(optionsInternal);
-            if (optionsInternal.Enable)
+            if (optionsInternal.EnableAuthentication)
             {
                 //自定义访问
                 if (optionsInternal.CustomAuthentication != null)
@@ -74,7 +74,7 @@ namespace Daily.Carp.Extension
         /// <summary>
         /// 是否开启权限验证
         /// </summary>
-        public bool Enable { get; set; } = false;
+        public bool EnableAuthentication { get; set; } = false;
 
         /// <summary>
         /// 鉴权中心的地址
@@ -82,6 +82,6 @@ namespace Daily.Carp.Extension
         public string AuthenticationCenter { get; set; } = string.Empty;
 
 
-        public WebApplication app { get; set; }
+        public WebApplication App { get; set; }
     }
 }

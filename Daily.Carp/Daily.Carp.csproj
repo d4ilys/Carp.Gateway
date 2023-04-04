@@ -7,7 +7,6 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Authors>Daily</Authors>
-		<Version>0.0.1-alpha.20230331</Version>
 		<Description>基于Yarp实现的API网关</Description>
 		<PackageId>Carp.Gateway</PackageId>
 		<Product>Carp.Gateway</Product>
@@ -20,8 +19,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!--<PackageReference Include="IdentityServer4" Version="4.1.2" />-->
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
 		<PackageReference Include="Yarp.ReverseProxy" Version="2.0.0" />
 	</ItemGroup>
 	<ItemGroup>

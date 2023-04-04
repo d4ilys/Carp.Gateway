@@ -7,7 +7,6 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Authors>Daily</Authors>
-		<Version>0.0.1-alpha.20230331</Version>
 		<Description>API网关Carp.Gateway Kubernetes扩展包</Description>
 		<PackageId>Carp.Gateway.Provider.Kubernetes</PackageId>
 		<Product>Carp.Gateway.Provider.Kubernetes</Product>
@@ -20,7 +19,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!--<PackageReference Include="Carp.Gateway" Version="0.0.1-alpha.20230331" />-->
 		<PackageReference Include="KubeClient.Extensions.DependencyInjection" Version="2.4.10" />
 	</ItemGroup>
 

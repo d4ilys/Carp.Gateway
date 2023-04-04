@@ -29,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AUC", "AUC", "{128F8015-50C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Consul.Client02", "Demos\Consul.Demo\Consul.Client02\Consul.Client02.csproj", "{867F3E25-F212-4CDB-970E-11D8CD421B61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthenticationCenter", "Demos\AUC\AuthenticationCenter\AuthenticationCenter.csproj", "{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{867F3E25-F212-4CDB-970E-11D8CD421B61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{867F3E25-F212-4CDB-970E-11D8CD421B61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{867F3E25-F212-4CDB-970E-11D8CD421B61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +88,7 @@ Global
 		{46E0938A-DE49-4886-8BCD-5D0A810C3F1C} = {01FD0D36-C46A-4AE4-B106-B5B7EFF59C05}
 		{128F8015-50CC-48A2-A4B2-0CB7C47ABA6C} = {6599D6A4-606E-4E5F-A6B0-4C6EC271F2C1}
 		{867F3E25-F212-4CDB-970E-11D8CD421B61} = {097E938E-EE0A-4F17-BB31-2DE4132F800A}
+		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9} = {128F8015-50CC-48A2-A4B2-0CB7C47ABA6C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EF0D572-4FF8-4762-BD03-AC4720F48372}

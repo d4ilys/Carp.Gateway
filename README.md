@@ -99,7 +99,7 @@ app.UseStaticFiles();
 app.UseCarp(options =>
 {
     options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
-    options.Enable = true; //启用权限验证
+    options.EnableAuthentication = true; //启用权限验证
 });
 
 app.MapControllers();
@@ -179,7 +179,7 @@ app.UseStaticFiles();
 app.UseCarp(options =>
 {
     options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
-    options.Enable = true; //启用权限验证
+    options.EnableAuthentication = true; //启用权限验证
 });
 
 app.MapControllers();
@@ -233,7 +233,7 @@ app.UseStaticFiles();
 app.UseCarp(options =>
 {
     options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
-    options.Enable = true; //启用权限验证
+    options.EnableAuthentication = true; //启用权限验证
 });
 
 app.MapControllers();
@@ -268,3 +268,6 @@ app.Run("http://*:6005");
   }
 ~~~
 
+#### 认证中心
+
+Demos-AUC文件夹中已经提供鉴权中心的Demo
