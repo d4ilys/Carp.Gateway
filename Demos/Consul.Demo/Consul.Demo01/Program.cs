@@ -13,12 +13,6 @@ var app = builder.Build();
 
 app.UseAuthorization();
 
-app.Use(async  (context, next) =>
-{
- 
-    await next();
-});
-
 app.UseCarp();
 
 app.MapControllers();

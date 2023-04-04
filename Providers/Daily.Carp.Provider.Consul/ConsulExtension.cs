@@ -1,4 +1,6 @@
-﻿using Daily.Carp.Provider.Consul;
+﻿using Daily.Carp.Configuration;
+using Daily.Carp.Provider.Consul;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Daily.Carp.Extension
 {
@@ -10,8 +12,8 @@ namespace Daily.Carp.Extension
         /// <param name="builder"></param>
         public static void AddConsul(this ICarpBuilder builder)
         {
-            var provider = new ConsulCarpConfigurationProvider();
-            provider.Initialize();
+            var provider = new ConsulCarpConfigurationActiver(builder.ProxyConfigProvider);
+            builder.Service.AddSingleton<CarpConfigurationActiver>(provider);
         }
     }
 }

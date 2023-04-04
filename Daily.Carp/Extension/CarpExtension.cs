@@ -22,14 +22,13 @@ namespace Daily.Carp.Extension
             ICarpBuilder builder = new CarpBuilder();
             builder.Service = service;
             builder.ProxyConfigProvider = new CarpProxyConfigProvider();
-            CarpApp.Services.AddSingleton(builder.ProxyConfigProvider);
             service.AddReverseProxy()
-                .LoadFormKubernetes(builder.ProxyConfigProvider);
+                .LoadFormCoustom(builder.ProxyConfigProvider);
             return builder;
         }
 
         //通过K8S加载
-        internal static IReverseProxyBuilder LoadFormKubernetes(this IReverseProxyBuilder builder,
+        internal static IReverseProxyBuilder LoadFormCoustom(this IReverseProxyBuilder builder,
             IProxyConfigProvider configProvider)
         {
             builder.Services.AddSingleton<IProxyConfigProvider>(configProvider);
@@ -42,8 +41,8 @@ namespace Daily.Carp.Extension
         /// <param name="builder"></param>
         public static void AddNormal(this ICarpBuilder builder)
         {
-            var provider = new NormalCarpConfigurationProvider();
-            provider.Initialize();
+            var provider = new NormalCarpConfigurationActiver(builder.ProxyConfigProvider);
+            builder.Service.AddSingleton<CarpConfigurationActiver>(provider);
         }
     }
 

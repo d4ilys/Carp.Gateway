@@ -1,6 +1,7 @@
 ﻿using Daily.Carp.Feature;
 using Daily.Carp.Yarp;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Daily.Carp
 {
@@ -14,6 +15,21 @@ namespace Daily.Carp
             get; internal set;
         }
 
+        /// <summary>
+        /// ASP.NET Core中的ServiceProvider
+        /// </summary>
+        internal static IServiceProvider ServiceProvider
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// ASP.NET Core中容器实例获取
+        /// </summary>
+        public static T GetRootService<T>()
+        {
+            return ServiceProvider.GetService<T>();
+        }
 
         public static CarpConfig? CarpConfig { get; set; } =  null;
 

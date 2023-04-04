@@ -193,7 +193,8 @@ app.Run("http://*:6005");
       "Host": "localhost",
       "Port": 8500,
       "Protocol": "http",
-      "Token": ""
+      "Token": "",
+      "Interval": 2000   //轮询查询更新Consul Service信息 ，默认3秒 单位毫秒
     },
     "Routes": [
       {

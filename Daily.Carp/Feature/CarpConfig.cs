@@ -26,6 +26,11 @@
         public string Host { get; }
         public int Port { get; }
         public string Token { get; }
+
+        /// <summary>
+        /// 轮询读取更新Consul Service信息，默认3秒
+        /// </summary>
+        public int Interval { get; set; } = 3 * 1000;
     }
 
     public class CarpRouteConfig
