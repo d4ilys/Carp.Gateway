@@ -10,7 +10,7 @@ namespace Daily.Carp.Provider.Consul
         }
 
         public ConsulRegistryConfiguration Config { get; set; }
-
+ 
         public IConsulClient Get()
         {
             return new ConsulClient(c =>
