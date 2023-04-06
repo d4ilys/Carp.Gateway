@@ -19,9 +19,11 @@ namespace Daily.Carp.Feature
         {
             var result = "";
             if (!Host.ToLower().StartsWith(Protocol))
-                result += $"{Protocol}://{Host}:{Port}";
+                result += $"{Protocol}://{Host}";
             else
-                result += $"{Host}:{Port}";
+                result += $"{Host}";
+            if (Port != 0)
+                result += $":{Port}";
             return result;
         }
     }

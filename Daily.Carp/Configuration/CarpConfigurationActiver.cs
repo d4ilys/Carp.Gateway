@@ -1,6 +1,7 @@
 ﻿using Daily.Carp.Yarp;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -103,7 +104,7 @@ namespace Daily.Carp.Configuration
             var clusterConfigs = new List<ClusterConfig>();
 
             var routeConfigs = new List<RouteConfig>();
-            
+
             //获取配置
             var carpConfig = CarpApp.GetCarpConfig();
 
@@ -139,6 +140,16 @@ namespace Daily.Carp.Configuration
                     clusterConfigs.Add(clusterConfig);
 
                     var routeId = $"RouteId-{Guid.NewGuid()}";
+
+                    var transforms = new List<IReadOnlyDictionary<string, string>>();
+                    if (!string.IsNullOrWhiteSpace(service.TransmitPathTemplate))
+                    {
+                        transforms.Add(new Dictionary<string, string>()
+                        {
+                            { "PathPattern", service.TransmitPathTemplate }
+                        });
+                    }
+
                     RouteConfig routeConfig = new RouteConfig
                     {
                         RouteId = routeId,
@@ -146,7 +157,8 @@ namespace Daily.Carp.Configuration
                         Match = new RouteMatch
                         {
                             Path = service.PathTemplate,
-                        }
+                        },
+                        Transforms = transforms.Any() ? transforms : null
                     };
                     routeConfigs.Add(routeConfig);
                 }

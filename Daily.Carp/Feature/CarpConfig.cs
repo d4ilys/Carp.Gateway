@@ -71,9 +71,14 @@
         public List<string> DownstreamHostAndPorts { get; set; } = new List<string>();
 
         /// <summary>
-        /// 路由模板
+        /// 客户端请求路由模板
         /// </summary>
         public string PathTemplate { get; set; }
+
+        /// <summary>
+        /// 转发路由模板
+        /// </summary>
+        public string TransmitPathTemplate { get; set; }
 
         /// <summary>
         /// 负载均衡策略

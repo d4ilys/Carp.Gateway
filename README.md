@@ -49,16 +49,17 @@ app.Run();
 * appsettings.json
 
 ~~~json
- "Carp": {
+  "Carp": {
     "Routes": [
       {
         "Descriptions": "简单的例子",
         "ServiceName": "Demo",
-        "PathTemplate": "{**catch-all}",
+        "PathTemplate": "/api/{**catch-all}",   //客户端请求路由
+        "TransmitPathTemplate": "{**catch-all}",  //下游转发路由
         "DownstreamHostAndPorts": [ "www.baidu.com", "www.jd.com" ]
       }
     ]
-  },
+  }
 ~~~
 
 * 运行项目观看效果把~

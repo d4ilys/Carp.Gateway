@@ -27,14 +27,29 @@ namespace Daily.Carp.Configuration
                 {
                     var service = new Service();
                     var strings = downstreamHostAndPort.Split(":");
-                    service.Host = strings[0];
-                    service.Port = Convert.ToInt32(strings[1]);
+                    service.Host = TryGetValueByArray(strings, 0);
+                    service.Port = Convert.ToInt32(TryGetValueByArray(strings,1,"0"));
                     service.Protocol = serviceRouteConfig.DownstreamScheme;
                     services.Add(service);
                 }
 
                 return services;
             });
+        }
+
+        private T TryGetValueByArray<T>(T[] array, int index, T defaultValue = default)
+        {
+            T res;
+            try
+            {
+                res = array[index];
+            }
+            catch
+            {
+                res = defaultValue;
+            }
+
+            return res;
         }
 
         public override void Refresh()
