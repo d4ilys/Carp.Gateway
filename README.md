@@ -317,7 +317,7 @@ Install-Package AspNetCore.Knife4jUI
           // 例如你的 Basics 服务中的 Swagger地址为swagger/v1/swagger.json
           // Business地址也是swagger/v1/swagger.json
           // 这样就需要以下配置
-		 // 如果Swagger.json地址按服务路由配置则不用。
+          // 如果Swagger.json地址按服务路由配置则不用。
           // business/swagger/v1/swagger.json
           // basics/swagger/v1/swagger.json
           {
