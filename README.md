@@ -416,7 +416,7 @@ app.UseKnife4UI(c =>
     c.Password = "daily";   //设置密码
     swaggers.ForEach(sj =>
     {
-		c.SwaggerEndpoint(sj,url, sj.name);
+	c.SwaggerEndpoint(sj,url, sj.name);
     });
  
 });
