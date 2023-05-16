@@ -9,9 +9,9 @@ using Daily.Carp.Yarp;
 
 namespace Daily.Carp.Configuration
 {
-    internal class NormalCarpConfigurationActiver : CarpConfigurationActiver
+    internal class NormalCarpConfigurationActivator : CarpConfigurationActivator
     {
-        public NormalCarpConfigurationActiver(CarpProxyConfigProvider provider) : base(provider)
+        public NormalCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
         {
             Initialize();
         }

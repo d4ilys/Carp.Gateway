@@ -14,12 +14,12 @@ using Daily.Carp.Yarp;
 
 namespace Daily.Carp.Provider.Consul
 {
-    internal class ConsulCarpConfigurationActiver : CarpConfigurationActiver
+    internal class ConsulCarpConfigurationActivator : CarpConfigurationActivator
     {
         private ConsulRegistryConfiguration _config;
         private static readonly object lock_obj = new object();
 
-        public ConsulCarpConfigurationActiver(CarpProxyConfigProvider provider) : base(provider)
+        public ConsulCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
         {
             ConfigureServices(service =>
             {

@@ -17,8 +17,8 @@ namespace Daily.Carp.Extension
         /// <param name="builder"></param>
         public static void AddKubernetes(this ICarpBuilder builder)
         {
-            var provider = new KubernetesCarpConfigurationActiver(builder.ProxyConfigProvider);
-            builder.Service.AddSingleton<CarpConfigurationActiver>(provider);
+            var provider = new KubernetesCarpConfigurationActivator(builder.ProxyConfigProvider);
+            builder.Service.AddSingleton<CarpConfigurationActivator>(provider);
         }
     }
 }

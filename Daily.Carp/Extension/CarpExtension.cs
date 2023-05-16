@@ -41,8 +41,8 @@ namespace Daily.Carp.Extension
         /// <param name="builder"></param>
         public static void AddNormal(this ICarpBuilder builder)
         {
-            var provider = new NormalCarpConfigurationActiver(builder.ProxyConfigProvider);
-            builder.Service.AddSingleton<CarpConfigurationActiver>(provider);
+            var provider = new NormalCarpConfigurationActivator(builder.ProxyConfigProvider);
+            builder.Service.AddSingleton<CarpConfigurationActivator>(provider);
         }
     }
 

@@ -15,11 +15,11 @@ using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Daily.Carp.Provider.Kubernetes
 {
-    internal class KubernetesCarpConfigurationActiver : CarpConfigurationActiver
+    internal class KubernetesCarpConfigurationActivator : CarpConfigurationActivator
     {
         private static readonly object lock_obj = new object();
 
-        public KubernetesCarpConfigurationActiver(CarpProxyConfigProvider provider) : base(provider)
+        public KubernetesCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
         {
             ConfigureServices(service => { service.AddKubeClient(true); });
             Initialize();
@@ -39,10 +39,10 @@ namespace Daily.Carp.Provider.Kubernetes
         }
 
 
-        //监控Pod更新Yarp配置
         private void Watch()
         {
             var carpConfig = CarpApp.GetCarpConfig();
+            //监听Service变化，实时更新Yarp配置
             var eventStream = GetService<IKubeApiClient>().PodsV1()
                 .WatchAll(kubeNamespace: carpConfig.Kubernetes.Namespace);
             eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(

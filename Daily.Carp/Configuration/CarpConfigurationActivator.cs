@@ -22,7 +22,7 @@ namespace Daily.Carp.Configuration
     /// <summary>
     /// Carp配置提供者
     /// </summary>
-    public abstract class CarpConfigurationActiver
+    public abstract class CarpConfigurationActivator
     {
         /// <summary>
         /// 内部专用IOC
@@ -39,7 +39,7 @@ namespace Daily.Carp.Configuration
         /// </summary>
         public CarpProxyConfigProvider YarpConfigProvider { get; set; }
 
-        protected CarpConfigurationActiver(CarpProxyConfigProvider provider)
+        protected CarpConfigurationActivator(CarpProxyConfigProvider provider)
         {
             YarpConfigProvider = provider;
             WatchConfig();
@@ -107,7 +107,7 @@ namespace Daily.Carp.Configuration
 
             //获取配置
             var carpConfig = CarpApp.GetCarpConfig();
-
+             
             foreach (var service in carpConfig.Routes)
             {
                 try
@@ -134,7 +134,8 @@ namespace Daily.Carp.Configuration
                             : new ForwarderRequestConfig()
                             {
                                 Version = new Version(service.HttpVersion),
-                                VersionPolicy = HttpVersionPolicy.RequestVersionExact
+                                VersionPolicy = HttpVersionPolicy.RequestVersionExact,
+                                ActivityTimeout = TimeSpan.FromSeconds(10)
                             }
                     };
                     clusterConfigs.Add(clusterConfig);

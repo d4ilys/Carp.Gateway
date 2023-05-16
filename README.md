@@ -269,6 +269,171 @@ app.Run("http://*:6005");
   }
 ~~~
 
+#### 集成Swagger
+
+推荐使用SwaggerUI库 - Knife4jUI ，体验会更好
+
+[IGeekFan.AspNetCore.Knife4jUI](https://github.com/luoyunchong/IGeekFan.AspNetCore.Knife4jUI)
+
+~~~powershell
+
+# 安装Swagger
+Install-Package Swashbuckle.AspNetCore
+
+#这是IGeekFan版本
+Install-Package IGeekFan.AspNetCore.Knife4jUI
+
+#这是我自己修改版，支持了鉴权、身份认证、各种优化，以下代码基于我的修改版
+Install-Package AspNetCore.Knife4jUI
+
+~~~
+
+~~~JSON
+
+//以下DEMO基于Kubernetes
+{
+  "Carp": {
+        "Kubernetes": {
+          "Namespace": "test"
+        },
+        "Routes": [
+          {
+            "Descriptions": "基础服务集群",
+            "ServiceName": "basics",
+            "PermissionsValidation": true,
+            "PathTemplate": "/Basics/{**catch-all}",
+            "LoadBalancerOptions": "PowerOfTwoChoices",
+            "DownstreamScheme": "http"
+          },
+          {
+            "Descriptions": "主业务服务集群",
+            "ServiceName": "business",
+            "PermissionsValidation": true,
+            "PathTemplate": "/Business/{**catch-all}",
+            "LoadBalancerOptions": "PowerOfTwoChoices",
+            "DownstreamScheme": "http"
+          },
+          // 如果每个服务的Swagger路由都是默认，需要在网关中配置Swagger
+          // 例如你的 Basics 服务中的 Swagger地址为swagger/v1/swagger.json
+          // Business地址也是swagger/v1/swagger.json
+          // 这样就需要以下配置
+		 // 如果Swagger.json地址按服务路由配置则不用。
+          // business/swagger/v1/swagger.json
+          // basics/swagger/v1/swagger.json
+          {
+            "Descriptions": "基础服务Swagger",
+            "ServiceName": "basics",
+            "PermissionsValidation": false,
+            "PathTemplate": "/Basics-Swagger/{**remainder}",
+            "TransmitPathTemplate": "{**remainder}", 
+            "LoadBalancerOptions": "PowerOfTwoChoices",
+            "DownstreamScheme": "http"
+          },
+          {
+            "Descriptions": "主业务服务Swagger",
+            "ServiceName": "business",
+            "PermissionsValidation": false,
+            "PathTemplate": "/Business-Swagger/{**remainder}",
+            "TransmitPathTemplate": "{**remainder}", 
+            "LoadBalancerOptions": "PowerOfTwoChoices",
+            "DownstreamScheme": "http"
+          }
+        ]
+      }
+}
+
+~~~
+
+~~~c#
+
+using Daily.Carp.Extension;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
+using System.Data;
+using Daily.Carp;
+using IGeekFan.AspNetCore.Knife4jUI;
+
+var builder = WebApplication.CreateBuilder(args).InjectCarp();
+
+//添加Carp配置
+builder.Services.AddCarp().AddKubernetes();
+
+builder.Services.AddControllers();
+
+//支持跨域
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder.SetIsOriginAllowed((x) => true)
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+//添加Swagger配置
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "CARP Gateway API", Version = "v1" });
+    c.CustomOperationIds(apiDesc =>
+    {
+        var controllerAction = apiDesc.ActionDescriptor as ControllerActionDescriptor;
+        return controllerAction.ControllerName + "-" + controllerAction.ActionName;
+    });
+    c.CustomSchemaIds(type => type.FullName);       //swagger支持动态生成的api接口
+
+});
+
+var app = builder.Build();
+
+app.UseStaticFiles();
+
+app.UseCors("CorsPolicy");
+
+//根据Carp配置路由信息形成集合
+//[{
+//    "name": "Basics API",
+//    "url": "Basics-Swagger/swagger/v1/swagger.json"
+//},
+//{
+//    "name": "Business API",
+//    "url": "Business-Swagger/swagger/v1/swagger.json"
+//}]
+
+var swaggers = JsonConvert.DeserializeObject<List<SwaggerJson>>("上面的JSON数组");
+
+app.UseKnife4UI(c =>
+{
+    
+    c.Authentication = true; //开启鉴权
+    c.Password = "daily";   //设置密码
+    swaggers.ForEach(sj =>
+    {
+		c.SwaggerEndpoint(sj,url, sj.name);
+    });
+ 
+});
+
+app.MapControllers();
+
+app.Run();
+
+~~~
+
+![image](https://github.com/luoyunchong/IGeekFan.AspNetCore.Knife4jUI/assets/54463101/d011c6c1-e782-49e3-95d0-9de35a2f9fe4)
+
+* 如果你的Swagger需要暴漏在外网 可以开启密码认证 - 以下是开启Swagger鉴权效果
+
+![image](https://github.com/d4ilys/Daily.ASPNETCore.Mini/assets/54463101/93f21178-ff24-4279-8473-08711091087b)
+
+* 如果直接访问JSON文件 不输入密码直接401
+
+![image](https://github.com/d4ilys/Daily.ASPNETCore.Mini/assets/54463101/38755d91-db29-44eb-ad6b-dba2a1837940)
+
 #### 认证中心
 
 Demos-AUC文件夹中已经提供鉴权中心的Demo
+
