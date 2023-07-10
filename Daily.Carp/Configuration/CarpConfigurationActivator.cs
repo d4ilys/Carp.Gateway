@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Security.Authentication;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -113,15 +114,30 @@ namespace Daily.Carp.Configuration
                 try
                 {
                     var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
-                    var address = addressFunc.Invoke(service.ServiceName);
-                    foreach (var item in address)
+                    if (!service.DownstreamHostAndPorts.Any())
                     {
-                        DestinationConfig destinationConfig = new DestinationConfig
+                        var address = addressFunc.Invoke(service.ServiceName);
+                        foreach (var item in address)
                         {
-                            Address = item.ToString()
-                        };
-                        destinations.Add($"{item}", destinationConfig);
+                            DestinationConfig destinationConfig = new DestinationConfig
+                            {
+                                Address = item.ToString()
+                            };
+                            destinations.Add($"{item}", destinationConfig);
+                        }
                     }
+                    else  //兼容普通模式
+                    {
+                        foreach (var item in service.DownstreamHostAndPorts)
+                        {
+                            DestinationConfig destinationConfig = new DestinationConfig
+                            {
+                                Address = item
+                            };
+                            destinations.Add($"{item}", destinationConfig);
+                        }
+                    }
+
 
                     var clusterId = $"ClusterId-{Guid.NewGuid()}";
                     ClusterConfig clusterConfig = new ClusterConfig
@@ -129,6 +145,10 @@ namespace Daily.Carp.Configuration
                         ClusterId = clusterId,
                         LoadBalancingPolicy = service.LoadBalancerOptions,
                         Destinations = destinations,
+                        HttpClient = new HttpClientConfig
+                        {
+                            DangerousAcceptAnyServerCertificate = true
+                        },
                         HttpRequest = service.HttpVersion == "2"
                             ? null
                             : new ForwarderRequestConfig()
