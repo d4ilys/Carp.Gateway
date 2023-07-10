@@ -451,3 +451,7 @@ app.Run();
 
 Demos-AUC文件夹中已经提供鉴权中心的Demo
 
+#### GRPC
+
+Demos-GRPC文件夹中已经提GRPC的Demo
+
