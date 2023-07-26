@@ -1,4 +1,5 @@
-﻿using Daily.Carp.Feature;
+﻿using Daily.Carp.Configuration;
+using Daily.Carp.Feature;
 using Daily.Carp.Yarp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +47,27 @@ namespace Daily.Carp
                 return c;
             }
             return CarpConfig;
+        }
+
+        /// <summary>
+        /// 通过ServiceName随机取得一个该服务的地址
+        /// </summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        public static string GetAddressByServiceName(string serviceName)
+        {
+            var carpConfigurationActivator = ServiceProvider.GetService<CarpConfigurationActivator>();
+            var proxyConfig = carpConfigurationActivator.YarpConfigProvider.GetConfig();
+            var hosts = proxyConfig.Clusters.Where(c => c.ClusterId == $"ClusterId-{serviceName}").Select(c => c.Destinations.Keys);
+            string result = "";
+            foreach (var host in hosts)
+            {
+                var random = new Random();
+                var hostList = host.ToList();
+                var next = random.Next(0, host.Count());
+                result = hostList[next];
+            }
+            return result;
         }
     }
 }

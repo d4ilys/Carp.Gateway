@@ -139,7 +139,7 @@ namespace Daily.Carp.Configuration
                     }
 
 
-                    var clusterId = $"ClusterId-{Guid.NewGuid()}";
+                    var clusterId = $"ClusterId-{service.ServiceName}";
                     ClusterConfig clusterConfig = new ClusterConfig
                     {
                         ClusterId = clusterId,
@@ -160,7 +160,7 @@ namespace Daily.Carp.Configuration
                     };
                     clusterConfigs.Add(clusterConfig);
 
-                    var routeId = $"RouteId-{Guid.NewGuid()}";
+                    var routeId = $"RouteId-{service.ServiceName}";
 
                     var transforms = new List<IReadOnlyDictionary<string, string>>();
                     if (!string.IsNullOrWhiteSpace(service.TransmitPathTemplate))

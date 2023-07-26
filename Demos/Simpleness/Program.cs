@@ -1,3 +1,4 @@
+using Daily.Carp;
 using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();  //×¢ÈëÅäÖÃ
@@ -15,5 +16,15 @@ app.UseAuthorization();
 app.UseCarp();
 
 app.MapControllers();
+
+Task.Run(() =>
+{
+    while (true)
+    {
+        Console.ReadKey();
+        var addressByServiceName = CarpApp.GetAddressByServiceName("file");
+        Console.WriteLine(addressByServiceName);
+    }
+});
 
 app.Run();

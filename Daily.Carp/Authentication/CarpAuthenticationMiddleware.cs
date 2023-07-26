@@ -49,24 +49,33 @@ namespace Daily.LinkTracking
                 //需要验证
                 if (needVerification)
                 {
-                    var httpClientFactory = context.RequestServices.GetService<IHttpClientFactory>();
-                    var httpClient = httpClientFactory.CreateClient("nossl");
-                    context.Request.Headers.TryGetValue("Authorization", out var token);
-                    var asstoken = "";
-                    if (token.Count != 0)
+                    if (_options.CustomAuthentication != null)
                     {
-                        asstoken = token.ToString();
-                        httpClient.DefaultRequestHeaders.Add("Authorization", asstoken);
-                        //去鉴权中心 校验token是否合法
-                        var httpResponseMessage =
-                            await httpClient.GetAsync(
-                                $"{_options.AuthenticationCenter}/connect/userinfo");
-                        flag = httpResponseMessage.StatusCode == HttpStatusCode.OK;
+                        flag = _options.CustomAuthentication.Invoke();
                     }
                     else
                     {
-                        flag = false;
+                        var httpClientFactory = context.RequestServices.GetService<IHttpClientFactory>();
+                        var httpClient = httpClientFactory.CreateClient("nossl");
+                        context.Request.Headers.TryGetValue("Authorization", out var token);
+                        var asstoken = "";
+                        if (token.Count != 0)
+                        {
+                            asstoken = token.ToString();
+                            httpClient.DefaultRequestHeaders.Add("Authorization", asstoken);
+                            //去鉴权中心 校验token是否合法
+                            var httpResponseMessage =
+                                await httpClient.GetAsync(
+                                    $"{_options.AuthenticationCenter}/connect/userinfo");
+                            flag = httpResponseMessage.StatusCode == HttpStatusCode.OK;
+                        }
+                        else
+                        {
+                            flag = false;
+                        }
                     }
+
+                  
                 }
             }
             catch
