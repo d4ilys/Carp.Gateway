@@ -13,18 +13,11 @@ var app = builder.Build();
 
 app.UseAuthorization();
 
-app.UseCarp();
+app.UseCarp(options =>
+{
+    options.EnableAuthentication = true;
+});
 
 app.MapControllers();
-
-Task.Run(() =>
-{
-    while (true)
-    {
-        Console.ReadKey();
-        var addressByServiceName = CarpApp.GetAddressByServiceName("file");
-        Console.WriteLine(addressByServiceName);
-    }
-});
 
 app.Run();

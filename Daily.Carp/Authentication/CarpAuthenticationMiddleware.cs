@@ -49,9 +49,20 @@ namespace Daily.LinkTracking
                 //需要验证
                 if (needVerification)
                 {
-                    if (_options.CustomAuthentication != null)
+                    //自定义授权
+                    if (_options.CustomAuthentication != null || _options.CustomAuthenticationAsync != null)
                     {
-                        flag = _options.CustomAuthentication.Invoke();
+                        if (_options.CustomAuthentication != null)
+                        {
+                            flag = _options.CustomAuthentication.Invoke();
+                        }
+
+                        //异步版本
+                        if (_options.CustomAuthenticationAsync != null)
+                        {
+                            var async = _options.CustomAuthenticationAsync;
+                            flag = await async.Invoke();
+                        }
                     }
                     else
                     {
@@ -74,8 +85,6 @@ namespace Daily.LinkTracking
                             flag = false;
                         }
                     }
-
-                  
                 }
             }
             catch

@@ -11,28 +11,27 @@ namespace Daily.Carp
         /// <summary>
         /// 配置对象
         /// </summary>
-        public static IConfiguration Configuration
-        {
-            get; internal set;
-        }
+        public static IConfiguration Configuration { get; internal set; }
 
         /// <summary>
         /// ASP.NET Core中的ServiceProvider
         /// </summary>
-        internal static IServiceProvider ServiceProvider
-        {
-            get; set;
-        }
+        internal static IServiceProvider ServiceProvider { get; set; }
 
         /// <summary>
         /// ASP.NET Core中容器实例获取
         /// </summary>
         public static T GetRootService<T>()
         {
+            if (ServiceProvider == null)
+            {
+                return default;
+            }
+
             return ServiceProvider.GetService<T>();
         }
 
-        public static CarpConfig? CarpConfig { get; set; } =  null;
+        public static CarpConfig? CarpConfig { get; set; } = null;
 
         /// <summary>
         /// 读取Carp配置
@@ -46,6 +45,7 @@ namespace Daily.Carp
                 CarpConfig = c;
                 return c;
             }
+
             return CarpConfig;
         }
 
@@ -58,7 +58,8 @@ namespace Daily.Carp
         {
             var carpConfigurationActivator = ServiceProvider.GetService<CarpConfigurationActivator>();
             var proxyConfig = carpConfigurationActivator.YarpConfigProvider.GetConfig();
-            var hosts = proxyConfig.Clusters.Where(c => c.ClusterId == $"ClusterId-{serviceName}").Select(c => c.Destinations.Keys);
+            var hosts = proxyConfig.Clusters.Where(c => c.ClusterId == $"ClusterId-{serviceName}")
+                .Select(c => c.Destinations.Keys);
             string result = "";
             foreach (var host in hosts)
             {
@@ -67,6 +68,7 @@ namespace Daily.Carp
                 var next = random.Next(0, host.Count());
                 result = hostList[next];
             }
+
             return result;
         }
     }

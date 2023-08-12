@@ -28,34 +28,7 @@ namespace Daily.Carp.Extension
             options?.Invoke(optionsInternal);
             if (optionsInternal.EnableAuthentication)
             {
-                //自定义访问
-                if (optionsInternal.CustomAuthentication != null)
-                {
-                    app.Use(async (context, next) =>
-                    {
-                        var pass = optionsInternal.CustomAuthentication?.Invoke();
-
-                        if (pass != null && pass == true)
-                        {
-                            await next();
-                        }
-                        else
-                        {
-                            //直接无权限
-                            context.Response.StatusCode = 401;
-                            context.Response.ContentType = "text/plain; charset=utf-8";
-                            //设置stream存放ResponseBody
-                            using (var memoryStream = new MemoryStream(Encoding.UTF8.GetBytes("Unrequited..")))
-                            {
-                                await memoryStream.CopyToAsync(context.Response.Body);
-                            }
-                        }
-                    });
-                }
-                else
-                {
-                    app.UseCarpAuthenticationMiddleware(optionsInternal);
-                }
+                 app.UseCarpAuthenticationMiddleware(optionsInternal);
             }
 
             app.MapReverseProxy();
@@ -72,6 +45,11 @@ namespace Daily.Carp.Extension
         public Func<bool>? CustomAuthentication { get; set; } = null;
 
         /// <summary>
+        /// 自定义鉴权异步版本
+        /// </summary>
+        public Func<Task<bool>>? CustomAuthenticationAsync { get; set; } = null;
+
+        /// <summary>
         /// 是否开启权限验证
         /// </summary>
         public bool EnableAuthentication { get; set; } = false;
@@ -80,7 +58,6 @@ namespace Daily.Carp.Extension
         /// 鉴权中心的地址
         /// </summary>
         public string AuthenticationCenter { get; set; } = string.Empty;
-
 
         public WebApplication App { get; set; }
     }

@@ -11,6 +11,7 @@ using Daily.Carp.Yarp;
 using Daily.Carp.Extension;
 using Daily.Carp.Feature;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Daily.Carp.Provider.Kubernetes
@@ -34,14 +35,17 @@ namespace Daily.Carp.Provider.Kubernetes
 
         public override void Refresh()
         {
+            var log = CarpApp.GetRootService<ILogger<KubernetesCarpConfigurationActivator>>();
             var carpConfig = CarpApp.GetCarpConfig();
             Inject(serviceName => GetPods(serviceName, carpConfig.Kubernetes.Namespace));
+            log.LogInformation($"Carp: {DateTime.Now} Configuration refresh.");
         }
 
 
         private void Watch()
         {
             var carpConfig = CarpApp.GetCarpConfig();
+            var log = CarpApp.GetRootService<ILogger<KubernetesCarpConfigurationActivator>>();
             //监听Service变化，实时更新Yarp配置
             var eventStream = GetService<IKubeApiClient>().PodsV1()
                 .WatchAll(kubeNamespace: carpConfig.Kubernetes.Namespace);
@@ -56,15 +60,19 @@ namespace Daily.Carp.Provider.Kubernetes
                         {
                             //延迟更新Config
                             await Task.Delay(2000);
+                            log.LogInformation("Carp: Listening to pod changes, refreshing.");
                             Refresh();
                         }
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e);
+                        log.LogError("Carp: Listening to pod fail.");
                     }
                 },
-                error => Console.WriteLine(error));
+                error => log.LogError("Carp: Listening to pod fail."), () =>
+                {
+                    log.LogInformation("Carp: Listening to pod completed.");
+                });
         }
 
         //为了防止其他状况 1分钟同步一次配置

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Daily.Carp.Feature;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Yarp.ReverseProxy.Configuration;
@@ -54,7 +55,7 @@ namespace Daily.Carp.Configuration
             //监听配置文件发生
             ChangeToken.OnChange(() => CarpApp.Configuration.GetReloadToken(), () =>
             {
-                Console.WriteLine("监听到配置发生改变，已经更新..");
+                CarpApp.GetRootService<ILogger<CarpConfigurationActivator>>()?.LogInformation("Carp: The configuration has changed and has been updated.");
                 CarpApp.CarpConfig = CarpApp.Configuration.GetSection("Carp").Get<CarpConfig>();
             });
         }
