@@ -39,15 +39,15 @@ namespace Daily.Carp.Extension
 
     public class CarpAppOptions
     {
-        /// <summary>
-        /// 自定义鉴权过程
-        /// </summary>
-        public Func<bool>? CustomAuthentication { get; set; } = null;
+        ///// <summary>
+        ///// 自定义鉴权过程
+        ///// </summary>
+        //public Func<bool>? CustomAuthentication { get; set; } = null;
 
         /// <summary>
-        /// 自定义鉴权异步版本
+        /// 自定义鉴权
         /// </summary>
-        public Func<Task<bool>>? CustomAuthenticationAsync { get; set; } = null;
+        public Dictionary<string,Func<Task<bool>>> CustomAuthenticationAsync { get; set; } = new Dictionary<string, Func<Task<bool>>>();
 
         /// <summary>
         /// 是否开启权限验证

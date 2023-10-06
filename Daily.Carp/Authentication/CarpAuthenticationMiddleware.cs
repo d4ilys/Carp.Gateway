@@ -44,47 +44,52 @@ namespace Daily.LinkTracking
 
                 var needVerification =
                     CarpApp.CarpConfig.Routes.Any(c =>
-                        c.PermissionsValidation &&
+                        c.PermissionsValidation.Any() &&
                         GetTempServiceName(c.ServiceName.ToLower()) == serviceName.ToLower());
                 //需要验证
                 if (needVerification)
                 {
                     //自定义授权
-                    if (_options.CustomAuthentication != null || _options.CustomAuthenticationAsync != null)
+                    var carpRouteConfig = CarpApp.CarpConfig.Routes.FirstOrDefault(c => c.ServiceName == serviceName);
+                    var permissionVerificationGroups = carpRouteConfig?.PermissionsValidation;
+                    if (permissionVerificationGroups != null)
                     {
-                        if (_options.CustomAuthentication != null)
+                        foreach (var permissionVerificationGroup in permissionVerificationGroups)
                         {
-                            flag = _options.CustomAuthentication.Invoke();
-                        }
-
-                        //异步版本
-                        if (_options.CustomAuthenticationAsync != null)
-                        {
-                            var async = _options.CustomAuthenticationAsync;
-                            flag = await async.Invoke();
+                            var tryGetValue =
+                                _options.CustomAuthenticationAsync.TryGetValue(permissionVerificationGroup,
+                                    out var func);
+                            if (tryGetValue)
+                            {
+                                flag = await func?.Invoke();
+                                if (flag == false)
+                                {
+                                    break;
+                                }
+                            }
                         }
                     }
-                    else
-                    {
-                        var httpClientFactory = context.RequestServices.GetService<IHttpClientFactory>();
-                        var httpClient = httpClientFactory.CreateClient("nossl");
-                        context.Request.Headers.TryGetValue("Authorization", out var token);
-                        var asstoken = "";
-                        if (token.Count != 0)
-                        {
-                            asstoken = token.ToString();
-                            httpClient.DefaultRequestHeaders.Add("Authorization", asstoken);
-                            //去鉴权中心 校验token是否合法
-                            var httpResponseMessage =
-                                await httpClient.GetAsync(
-                                    $"{_options.AuthenticationCenter}/connect/userinfo");
-                            flag = httpResponseMessage.StatusCode == HttpStatusCode.OK;
-                        }
-                        else
-                        {
-                            flag = false;
-                        }
-                    }
+                    //else
+                    //{
+                    //    var httpClientFactory = context.RequestServices.GetService<IHttpClientFactory>();
+                    //    var httpClient = httpClientFactory.CreateClient("nossl");
+                    //    context.Request.Headers.TryGetValue("Authorization", out var token);
+                    //    var asstoken = "";
+                    //    if (token.Count != 0)
+                    //    {
+                    //        asstoken = token.ToString();
+                    //        httpClient.DefaultRequestHeaders.Add("Authorization", asstoken);
+                    //        //去鉴权中心 校验token是否合法
+                    //        var httpResponseMessage =
+                    //            await httpClient.GetAsync(
+                    //                $"{_options.AuthenticationCenter}/connect/userinfo");
+                    //        flag = httpResponseMessage.StatusCode == HttpStatusCode.OK;
+                    //    }
+                    //    else
+                    //    {
+                    //        flag = false;
+                    //    }
+                    //}
                 }
             }
             catch

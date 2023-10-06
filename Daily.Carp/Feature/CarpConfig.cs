@@ -48,7 +48,8 @@
         /// <summary>
         /// 是否权限验证
         /// </summary>
-        public bool PermissionsValidation { get; set; }
+        public List<string> PermissionsValidation { get; set; } =
+            new List<string>();
 
         /// <summary>
         /// 下端协议

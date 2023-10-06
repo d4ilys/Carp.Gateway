@@ -16,6 +16,16 @@ app.UseAuthorization();
 app.UseCarp(options =>
 {
     options.EnableAuthentication = true;
+    options.CustomAuthenticationAsync.Add("BearerToken", async () =>
+    {
+        Console.WriteLine("111");
+        return await Task.FromResult(false);
+    });
+    options.CustomAuthenticationAsync.Add("VisaVerification", async () =>
+    {
+        Console.WriteLine("222");
+        return await Task.FromResult(true);
+    });
 });
 
 app.MapControllers();
