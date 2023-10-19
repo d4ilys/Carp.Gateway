@@ -55,7 +55,12 @@ namespace Daily.Carp.Configuration
             //监听配置文件发生
             ChangeToken.OnChange(() => CarpApp.Configuration.GetReloadToken(), () =>
             {
-                CarpApp.GetRootService<ILogger<CarpConfigurationActivator>>()?.LogInformation("Carp: The configuration has changed and has been updated.");
+                if (CarpApp.CarpConfig.ShowLogInformation)
+                {
+                    CarpApp.GetRootService<ILogger<CarpConfigurationActivator>>()
+                        ?.LogInformation("Carp: The configuration has changed and has been updated.");
+                }
+
                 CarpApp.CarpConfig = CarpApp.Configuration.GetSection("Carp").Get<CarpConfig>();
             });
         }
@@ -109,7 +114,7 @@ namespace Daily.Carp.Configuration
 
             //获取配置
             var carpConfig = CarpApp.GetCarpConfig();
-             
+
             foreach (var service in carpConfig.Routes)
             {
                 try
@@ -127,7 +132,7 @@ namespace Daily.Carp.Configuration
                             destinations.Add($"{item}", destinationConfig);
                         }
                     }
-                    else  //兼容普通模式
+                    else //兼容普通模式
                     {
                         foreach (var item in service.DownstreamHostAndPorts)
                         {

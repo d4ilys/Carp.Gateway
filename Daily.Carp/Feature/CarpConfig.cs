@@ -6,6 +6,8 @@
 
         public Consul Consul { get; set; } = new Consul();
 
+        public bool ShowLogInformation { get; set; } = true;
+
         /// <summary>
         /// 集群配置
         /// </summary>

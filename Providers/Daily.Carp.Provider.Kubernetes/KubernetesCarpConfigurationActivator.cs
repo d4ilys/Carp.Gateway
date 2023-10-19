@@ -31,7 +31,10 @@ namespace Daily.Carp.Provider.Kubernetes
         {
             var carpConfig = CarpApp.GetCarpConfig();
             Inject(serviceName => GetPods(serviceName, carpConfig.Kubernetes.Namespace));
-            LogInfo($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Configuration refresh.");
+            if (CarpApp.CarpConfig.ShowLogInformation)
+            {
+                LogInfo($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Configuration refresh.");
+            }
         }
 
 
@@ -69,14 +72,17 @@ namespace Daily.Carp.Provider.Kubernetes
 
         private void LogInfo(string info)
         {
-            var log = CarpApp.GetRootService<ILogger<KubernetesCarpConfigurationActivator>>();
-            if (log != null)
+            if (CarpApp.CarpConfig.ShowLogInformation)
             {
-                log?.LogInformation($"Carp: {info}");
-            }
-            else
-            {
-                Console.WriteLine($"Carp: {info}");
+                var log = CarpApp.GetRootService<ILogger<KubernetesCarpConfigurationActivator>>();
+                if (log != null)
+                {
+                    log?.LogInformation($"Carp: {info}");
+                }
+                else
+                {
+                    Console.WriteLine($"Carp: {info}");
+                }
             }
         }
 
