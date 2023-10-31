@@ -2,6 +2,7 @@
 using Daily.Carp.Feature;
 using Daily.Carp.Yarp;
 using KubeClient;
+using KubeClient.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -51,14 +52,38 @@ namespace Daily.Carp.Provider.Kubernetes
                 {
                     try
                     {
-                        //监听POD创建成功后，更新Config
-                        var any = subsequentEvent.Status.ContainerStatuses.Any(c => c.Ready == true);
-                        if (any)
+                        var statuses = subsequentEvent.Status;
+                        if (statuses.ContainerStatuses.Any(c => c.Ready))
                         {
-                            //延迟更新Config
-                            await Task.Delay(2000);
-                            LogInfo("Listening to pod changes, refreshing.");
-                            Refresh();
+                            if (statuses.Conditions.All(c => c.Status == "True"))
+                            {
+                                try
+                                {
+                                    var client = GetService<IKubeApiClient>();
+                                    var log = "";
+                                    try
+                                    {
+                                        log = await client.PodsV1().Logs(subsequentEvent.Metadata.Name,
+                                            kubeNamespace: k8snamespace, tailLines: 2);
+                                    }
+                                    catch
+                                    {
+                                        // ignored
+                                    }
+
+                                    if (!log.Contains("shutting down")) //TODO 获取状态有问题，只能判断该容器是否正在退出
+                                    {
+                                        //延迟更新Config
+                                        await Task.Delay(100);
+                                        LogInfo("Listening to pod changes, refreshing.");
+                                        Refresh();
+                                    }
+                                }
+                                catch
+                                {
+                                    // ignored
+                                }
+                            }
                         }
                     }
                     catch (Exception e)
