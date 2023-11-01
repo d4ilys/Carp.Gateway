@@ -59,8 +59,19 @@ namespace Daily.Carp.Provider.Kubernetes
                             {
                                 try
                                 {
-                                    //No Terminating
-                                    if (!subsequentEvent.Metadata.DeletionTimestamp.HasValue)
+                                    var client = GetService<IKubeApiClient>();
+                                    var log = "";
+                                    try
+                                    {
+                                        log = await client.PodsV1().Logs(subsequentEvent.Metadata.Name,
+                                            kubeNamespace: k8snamespace, tailLines: 2);
+                                    }
+                                    catch
+                                    {
+                                        // ignored
+                                    }
+
+                                    if (!log.Contains("shutting down")) //TODO 获取状态有问题，只能判断该容器是否正在退出
                                     {
                                         //延迟更新Config
                                         await Task.Delay(100);
@@ -134,37 +145,74 @@ namespace Daily.Carp.Provider.Kubernetes
                 try
                 {
                     var client = GetService<IKubeApiClient>();
-                    var clientV1 = new EndPointClientV1(client: client);
-                    var endpointsV1 = clientV1.Get(serviceName, namespaces).ConfigureAwait(true).GetAwaiter()
-                        .GetResult();
+
+                    var pods = client.PodsV1().List(kubeNamespace: namespaces, labelSelector: $"app={serviceName}")
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
                     var carpRouteConfig = CarpApp.GetCarpConfig().Routes.First(c => c.ServiceName == serviceName);
-                    foreach (var item in endpointsV1.Subsets)
+                    foreach (var podV1 in pods)
                     {
                         try
                         {
-                            var port = item.Ports.First().Port;
-                            foreach (var endpointAddressV1 in item.Addresses)
+                            if (podV1.Status.ContainerStatuses.Any(c => c.Ready))
                             {
-                                if (carpRouteConfig.Port != 0)
+                                if (podV1.Metadata.DeletionTimestamp.HasValue)
                                 {
-                                    port = carpRouteConfig.Port;
+                                    // Terminating
                                 }
-
-                                var host = $"{endpointAddressV1.Ip}:{port}";
-                                services.Add(new Service()
+                                else
                                 {
-                                    Host = endpointAddressV1.Ip,
-                                    Port = port,
-                                    Protocol = carpRouteConfig.DownstreamScheme
-                                });
+                                    var host = podV1.Status.PodIP;
+                                    var port = podV1.Spec.Containers.FirstOrDefault()?.Ports.FirstOrDefault()
+                                        ?.ContainerPort;
+                                    services.Add(new Service()
+                                    {
+                                        Host = host,
+                                        Port = Convert.ToInt32(port),
+                                        Protocol = carpRouteConfig.DownstreamScheme
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"{podV1.Metadata.Name},NoReady");
                             }
                         }
                         catch (Exception e)
                         {
                             LogError($"Endpoints foreach error {Environment.NewLine}Message:{e}");
-                            continue;
                         }
                     }
+
+                    //var clientV1 = new EndPointClientV1(client: client);
+                    //var endpointsV1 = clientV1.Get(serviceName, namespaces).ConfigureAwait(true).GetAwaiter()
+                    //    .GetResult();
+                    //foreach (var item in endpointsV1.Subsets)
+                    //{
+                    //    try
+                    //    {
+                    //        var port = item.Ports.First().Port;
+                    //        foreach (var endpointAddressV1 in item.Addresses)
+                    //        {
+                    //            if (carpRouteConfig.Port != 0)
+                    //            {
+                    //                port = carpRouteConfig.Port;
+                    //            }
+
+                    //            var host = $"{endpointAddressV1.Ip}:{port}";
+                    //            services.Add(new Service()
+                    //            {
+                    //                Host = endpointAddressV1.Ip,
+                    //                Port = port,
+                    //                Protocol = carpRouteConfig.DownstreamScheme
+                    //            });
+                    //        }
+                    //    }
+                    //    catch (Exception e)
+                    //    {
+                    //        LogError($"Endpoints foreach error {Environment.NewLine}Message:{e}");
+                    //        continue;
+                    //    }
+                    //}
 
                     LogInfo($"EndPoint {JsonConvert.SerializeObject(services)}.");
                 }
