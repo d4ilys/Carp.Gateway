@@ -59,19 +59,8 @@ namespace Daily.Carp.Provider.Kubernetes
                             {
                                 try
                                 {
-                                    var client = GetService<IKubeApiClient>();
-                                    var log = "";
-                                    try
-                                    {
-                                        log = await client.PodsV1().Logs(subsequentEvent.Metadata.Name,
-                                            kubeNamespace: k8snamespace, tailLines: 2);
-                                    }
-                                    catch
-                                    {
-                                        // ignored
-                                    }
-
-                                    if (!log.Contains("shutting down")) //TODO 获取状态有问题，只能判断该容器是否正在退出
+                                    //No Terminating
+                                    if (!subsequentEvent.Metadata.DeletionTimestamp.HasValue)
                                     {
                                         //延迟更新Config
                                         await Task.Delay(100);
