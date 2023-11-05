@@ -35,11 +35,15 @@ namespace Daily.Carp.Provider.Consul
 
         public override void Initialize()
         {
-            Refresh();
+            RefreshAll();
             TimingUpdate();
         }
 
-        public override void Refresh() => Inject(GetServices);
+        public override void RefreshAll() => Inject(GetServices);
+        public override void Refresh(string serviceName)
+        {
+            throw new NotImplementedException();
+        }
 
         //为了防止其他状况 1分钟同步一次配置
         private void TimingUpdate()
@@ -50,7 +54,7 @@ namespace Daily.Carp.Provider.Consul
                 timer.Interval = CarpApp.GetCarpConfig().Consul.Interval;
                 timer.Elapsed += (sender, eventArgs) =>
                 {
-                    Refresh();
+                    RefreshAll();
                 };
                 timer.Start();
             });

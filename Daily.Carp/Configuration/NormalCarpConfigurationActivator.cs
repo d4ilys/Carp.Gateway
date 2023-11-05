@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Daily.Carp.Feature;
 using Daily.Carp.Internel;
 using Daily.Carp.Yarp;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace Daily.Carp.Configuration
 {
@@ -14,6 +17,7 @@ namespace Daily.Carp.Configuration
         public NormalCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
         {
             Initialize();
+            Watch();
         }
 
         public override void Initialize()
@@ -28,12 +32,31 @@ namespace Daily.Carp.Configuration
                     var service = new Service();
                     var strings = downstreamHostAndPort.Split(":");
                     service.Host = TryGetValueByArray(strings, 0);
-                    service.Port = Convert.ToInt32(TryGetValueByArray(strings,1,"0"));
+                    service.Port = Convert.ToInt32(TryGetValueByArray(strings, 1, "0"));
                     service.Protocol = serviceRouteConfig.DownstreamScheme;
                     services.Add(service);
                 }
 
                 return services;
+            });
+        }
+
+        private void Watch()
+        {
+            ChangeToken.OnChange(() => CarpApp.Configuration.GetReloadToken(), () =>
+            {
+                CarpApp.CarpConfig = CarpApp.Configuration.GetSection("Carp").Get<CarpConfig>();
+
+                try
+                {
+                    RefreshAll();
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                CarpApp.LogInfo($"{DateTime.Now}:监听到配置文件发生改变，配置已更新..");
             });
         }
 
@@ -52,9 +75,30 @@ namespace Daily.Carp.Configuration
             return res;
         }
 
-        public override void Refresh()
+        public override void RefreshAll()
         {
             Initialize();
+        }
+
+        public override void Refresh(string serviceName)
+        {
+            var carpConfig = CarpApp.GetCarpConfig();
+            RefreshInject(serviceName =>
+            {
+                var services = new List<Service>();
+                var serviceRouteConfig = carpConfig.Routes.Where(c => c.ServiceName == serviceName).First();
+                foreach (var downstreamHostAndPort in serviceRouteConfig.DownstreamHostAndPorts)
+                {
+                    var service = new Service();
+                    var strings = downstreamHostAndPort.Split(":");
+                    service.Host = TryGetValueByArray(strings, 0);
+                    service.Port = Convert.ToInt32(TryGetValueByArray(strings, 1, "0"));
+                    service.Protocol = serviceRouteConfig.DownstreamScheme;
+                    services.Add(service);
+                }
+
+                return services;
+            }, serviceName);
         }
     }
 }

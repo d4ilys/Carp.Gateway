@@ -1,32 +1,24 @@
+using System.Text;
 using Daily.Carp;
 using Daily.Carp.Extension;
+using Microsoft.AspNetCore.Http.Extensions;
+using Simpleness;
 
-var builder = WebApplication.CreateBuilder(args).InjectCarp();  //×¢ÈëÅäÖÃ
+var builder = WebApplication.CreateBuilder(args).InjectCarp(); //×¢ÈëÅäÖÃ
 
 // Add services to the container.
 
 builder.Services.AddControllers();
 
-builder.Services.AddCarp().AddNormal();  
+builder.Services.AddCarp().AddNormal();
 
 var app = builder.Build();
 
+app.UseFailover();
+
 app.UseAuthorization();
 
-app.UseCarp(options =>
-{
-    options.EnableAuthentication = true;
-    options.CustomAuthenticationAsync.Add("BearerToken", async () =>
-    {
-        Console.WriteLine("111");
-        return await Task.FromResult(false);
-    });
-    options.CustomAuthenticationAsync.Add("VisaVerification", async () =>
-    {
-        Console.WriteLine("222");
-        return await Task.FromResult(true);
-    });
-});
+app.UseCarp();
 
 app.MapControllers();
 

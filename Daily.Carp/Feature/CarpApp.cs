@@ -1,8 +1,10 @@
-﻿using Daily.Carp.Configuration;
+﻿using System.Collections.Concurrent;
+using Daily.Carp.Configuration;
 using Daily.Carp.Feature;
 using Daily.Carp.Yarp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Daily.Carp
 {
@@ -49,8 +51,10 @@ namespace Daily.Carp
             return CarpConfig;
         }
 
+        private static readonly ConcurrentDictionary<string, int> Polling = new ConcurrentDictionary<string, int>();
+
         /// <summary>
-        /// 通过ServiceName随机取得一个该服务的地址
+        /// 通过ServiceName轮询获取DownstreamHostAndPorts地址
         /// </summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
@@ -61,15 +65,47 @@ namespace Daily.Carp
             var hosts = proxyConfig.Clusters.Where(c => c.ClusterId == $"ClusterId-{serviceName}")
                 .Select(c => c.Destinations.Keys);
             string result = "";
-            foreach (var host in hosts)
-            {
-                var random = new Random();
-                var hostList = host.ToList();
-                var next = random.Next(0, host.Count());
-                result = hostList[next];
-            }
 
-            return result;
+            var servers = hosts.First().ToList();
+            var polling = Polling.GetOrAdd(serviceName, s => 0);
+            if (polling >= servers.Count)
+            {
+                Polling[serviceName] = 0;
+            }
+            var index = Polling[serviceName];
+            var server = servers[index];
+            
+            Polling[serviceName] += 1;
+            return server.Trim();
+        }
+
+        public static void LogInfo(string info)
+        {
+            if (CarpApp.CarpConfig != null && CarpApp.CarpConfig.ShowLogInformation)
+            {
+                var log = CarpApp.GetRootService<ILogger<CarpApp>>();
+                if (log != null)
+                {
+                    log?.LogInformation($"Carp: {info}");
+                }
+                else
+                {
+                    Console.WriteLine($"Carp: {info}");
+                }
+            }
+        }
+
+        public static void LogError(string info)
+        {
+            var log = CarpApp.GetRootService<ILogger<CarpApp>>();
+            if (log != null)
+            {
+                log?.LogError($"Carp: {info}");
+            }
+            else
+            {
+                Console.WriteLine($"Carp: {info}");
+            }
         }
     }
 }

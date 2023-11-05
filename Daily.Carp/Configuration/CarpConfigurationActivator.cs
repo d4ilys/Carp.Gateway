@@ -44,26 +44,8 @@ namespace Daily.Carp.Configuration
         protected CarpConfigurationActivator(CarpProxyConfigProvider provider)
         {
             YarpConfigProvider = provider;
-            WatchConfig();
         }
 
-        /// <summary>
-        /// 监听配置文件发生改变
-        /// </summary>
-        private void WatchConfig()
-        {
-            //监听配置文件发生
-            ChangeToken.OnChange(() => CarpApp.Configuration.GetReloadToken(), () =>
-            {
-                if (CarpApp.CarpConfig.ShowLogInformation)
-                {
-                    CarpApp.GetRootService<ILogger<CarpConfigurationActivator>>()
-                        ?.LogInformation("Carp: The configuration has changed and has been updated.");
-                }
-
-                CarpApp.CarpConfig = CarpApp.Configuration.GetSection("Carp").Get<CarpConfig>();
-            });
-        }
 
         /// <summary>
         /// 初始化
@@ -73,7 +55,9 @@ namespace Daily.Carp.Configuration
         /// <summary>
         /// 刷新配置
         /// </summary>
-        public abstract void Refresh();
+        public abstract void RefreshAll();
+
+        public abstract void Refresh(string serviceName);
 
         /// <summary>
         /// 内部容器添加服务
@@ -98,6 +82,15 @@ namespace Daily.Carp.Configuration
         public virtual void Inject(Func<string, IEnumerable<Service>> addressFunc)
         {
             var result = YarpAdapter(addressFunc);
+            YarpConfigProvider.Refresh(result.Item2, result.Item1);
+        }
+
+        /// <summary>
+        /// 按服务名称注入配置
+        /// </summary>
+        public virtual void RefreshInject(Func<string, IEnumerable<Service>> addressFunc, string serviceName)
+        {
+            var result = RefreshYarpAdapter(addressFunc, serviceName);
             YarpConfigProvider.Refresh(result.Item2, result.Item1);
         }
 
@@ -129,6 +122,7 @@ namespace Daily.Carp.Configuration
                             {
                                 Address = item.ToString()
                             };
+
                             destinations.Add($"{item}", destinationConfig);
                         }
                     }
@@ -193,6 +187,118 @@ namespace Daily.Carp.Configuration
                 {
                     continue;
                 }
+            }
+
+            return new Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>(clusterConfigs, routeConfigs);
+        }
+
+        /// <summary>
+        /// 部分yarp配置适配
+        /// </summary>
+        /// <returns></returns>
+        private Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>> RefreshYarpAdapter(
+            Func<string, IEnumerable<Service>> addressFunc, string serviceName)
+        {
+            CarpApp.LogInfo($"{DateTime.Now},监听到:{serviceName}Pod修改，正在刷新配置...");
+            var proxyConfig = YarpConfigProvider.GetConfig();
+
+            var clusterConfigs = new List<ClusterConfig>(proxyConfig.Clusters);
+
+            var routeConfigs = new List<RouteConfig>(proxyConfig.Routes);
+
+            //获取配置
+            var carpConfigRoutes = CarpApp.GetCarpConfig().Routes.Where(c => c.ServiceName == serviceName);
+
+            var serverClusterConfigs = clusterConfigs.Where(c => c.ClusterId == $"ClusterId-{serviceName}")
+                .Select(c => c.ClusterId).ToList();
+
+            foreach (var clusterId in serverClusterConfigs)
+            {
+                clusterConfigs.RemoveAll(c => c.ClusterId == clusterId);
+                routeConfigs.RemoveAll(c => c.ClusterId == clusterId);
+            }
+
+            foreach (var service in carpConfigRoutes)
+            {
+                try
+                {
+                    var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
+                    if (!service.DownstreamHostAndPorts.Any())
+                    {
+                        var address = addressFunc.Invoke(service.ServiceName);
+                        foreach (var item in address)
+                        {
+                            DestinationConfig destinationConfig = new DestinationConfig
+                            {
+                                Address = item.ToString()
+                            };
+
+                            destinations.Add($"{item}", destinationConfig);
+                        }
+                    }
+                    else //兼容普通模式
+                    {
+                        foreach (var item in service.DownstreamHostAndPorts)
+                        {
+                            DestinationConfig destinationConfig = new DestinationConfig
+                            {
+                                Address = item
+                            };
+                            destinations.Add($"{item}", destinationConfig);
+                        }
+                    }
+
+
+                    var clusterId = $"ClusterId-{service.ServiceName}";
+                    ClusterConfig clusterConfig = new ClusterConfig
+                    {
+                        ClusterId = clusterId,
+                        LoadBalancingPolicy = service.LoadBalancerOptions,
+                        Destinations = destinations,
+                        HttpClient = new HttpClientConfig
+                        {
+                            DangerousAcceptAnyServerCertificate = true
+                        },
+                        HttpRequest = service.HttpVersion == "2"
+                            ? null
+                            : new ForwarderRequestConfig()
+                            {
+                                Version = new Version(service.HttpVersion),
+                                VersionPolicy = HttpVersionPolicy.RequestVersionExact,
+                                ActivityTimeout = TimeSpan.FromSeconds(10)
+                            }
+                    };
+                    clusterConfigs.Add(clusterConfig);
+
+                    var routeId = $"RouteId-{service.ServiceName}";
+
+                    var transforms = new List<IReadOnlyDictionary<string, string>>();
+                    if (!string.IsNullOrWhiteSpace(service.TransmitPathTemplate))
+                    {
+                        transforms.Add(new Dictionary<string, string>()
+                        {
+                            { "PathPattern", service.TransmitPathTemplate }
+                        });
+                    }
+
+                    RouteConfig routeConfig = new RouteConfig
+                    {
+                        RouteId = routeId,
+                        ClusterId = clusterId,
+                        Match = new RouteMatch
+                        {
+                            Path = service.PathTemplate,
+                        },
+                        Transforms = transforms.Any() ? transforms : null
+                    };
+                    routeConfigs.Add(routeConfig);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                CarpApp.LogInfo($"{DateTime.Now},{serviceName}，刷新成功：{JsonSerializer.Serialize(service)}.");
             }
 
             return new Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>(clusterConfigs, routeConfigs);
