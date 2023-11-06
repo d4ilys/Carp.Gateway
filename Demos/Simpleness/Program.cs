@@ -2,7 +2,7 @@ using System.Text;
 using Daily.Carp;
 using Daily.Carp.Extension;
 using Microsoft.AspNetCore.Http.Extensions;
-using Simpleness;
+using Microsoft.Extensions.Primitives;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp(); //◊¢»Î≈‰÷√
 
@@ -13,8 +13,6 @@ builder.Services.AddControllers();
 builder.Services.AddCarp().AddNormal();
 
 var app = builder.Build();
-
-app.UseFailover();
 
 app.UseAuthorization();
 

@@ -9,7 +9,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Carp.Gateway.Provider.Kubernetes" Version="0.0.4-alpha" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
 	</ItemGroup>
 
@@ -20,6 +19,9 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Controllers\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Providers\Daily.Carp.Provider.Kubernetes\Daily.Carp.Provider.Kubernetes.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="jtys.cqyt.petrochina.pfx">

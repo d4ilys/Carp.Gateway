@@ -1,19 +1,22 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using Daily.Carp.Extension;
 using Microsoft.Extensions.Hosting;
 
-namespace Daily.Carp.Internel
+namespace Daily.Carp.Provider.Consul
 {
-    public class GenericHostedService : IHostedService
+    /// <summary>
+    /// 主机启动时构建KubernetesGenericHostedService
+    /// </summary>
+    public class ConsulGenericHostedService : IHostedService
     {
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="host"></param>
-        public GenericHostedService(IHost host)
+        public ConsulGenericHostedService(IHost? host, IServiceProvider serviceProvider, ICarpBuilder carpBuilder)
         {
             // 存储根服务
-            CarpApp.ServiceProvider = host.Services;
+            CarpApp.ServiceProvider = serviceProvider;
+            var provider = new ConsulCarpConfigurationActivator(carpBuilder.ProxyConfigProvider);
         }
 
         /// <summary>

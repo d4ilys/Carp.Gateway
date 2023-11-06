@@ -1,9 +1,11 @@
 ﻿using Daily.Carp.Configuration;
 using Daily.Carp.Extension;
+using Daily.Carp.Internel;
 using Daily.Carp.Provider.Kubernetes;
 using KubeClient;
 using KubeClient.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -17,8 +19,9 @@ namespace Daily.Carp.Extension
         /// <param name="builder"></param>
         public static void AddKubernetes(this ICarpBuilder builder)
         {
-            var provider = new KubernetesCarpConfigurationActivator(builder.ProxyConfigProvider);
-            builder.Service.AddSingleton<CarpConfigurationActivator>(provider);
+            builder.Service.AddKubeClient(true);
+            builder.Service.AddHostedService(serviceProvider =>
+                new KubernetesGenericHostedService(serviceProvider.GetService<IHost>(), serviceProvider, builder));
         }
     }
 }

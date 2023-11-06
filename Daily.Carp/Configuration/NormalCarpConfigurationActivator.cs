@@ -26,7 +26,7 @@ namespace Daily.Carp.Configuration
             Inject(serviceName =>
             {
                 var services = new List<Service>();
-                var serviceRouteConfig = carpConfig.Routes.Where(c => c.ServiceName == serviceName).First();
+                var serviceRouteConfig = carpConfig.Routes.First(c => c.ServiceName == serviceName);
                 foreach (var downstreamHostAndPort in serviceRouteConfig.DownstreamHostAndPorts)
                 {
                     var service = new Service();
@@ -43,7 +43,7 @@ namespace Daily.Carp.Configuration
 
         private void Watch()
         {
-            ChangeToken.OnChange(() => CarpApp.Configuration.GetReloadToken(), () =>
+            ChangeToken.OnChange(CarpApp.Configuration.GetReloadToken, () =>
             {
                 CarpApp.CarpConfig = CarpApp.Configuration.GetSection("Carp").Get<CarpConfig>();
 
@@ -86,7 +86,7 @@ namespace Daily.Carp.Configuration
             RefreshInject(serviceName =>
             {
                 var services = new List<Service>();
-                var serviceRouteConfig = carpConfig.Routes.Where(c => c.ServiceName == serviceName).First();
+                var serviceRouteConfig = carpConfig.Routes.First(c => c.ServiceName == serviceName);
                 foreach (var downstreamHostAndPort in serviceRouteConfig.DownstreamHostAndPorts)
                 {
                     var service = new Service();

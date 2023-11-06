@@ -18,11 +18,10 @@ namespace Daily.Carp.Provider.Kubernetes
 
         public KubernetesCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
         {
-            ConfigureServices(service => { service.AddKubeClient(true); });
             Initialize();
         }
 
-        public override void Initialize()
+        public sealed override void Initialize()
         {
             RefreshAll();
             Watch();
@@ -46,11 +45,11 @@ namespace Daily.Carp.Provider.Kubernetes
         private void Watch()
         {
             var carpConfig = GetCarpConfig();
-            var k8snamespace = carpConfig.Kubernetes.Namespace;
+            var kubeNamespace = carpConfig.Kubernetes.Namespace;
             //监听Service变化，实时更新Yarp配置
-            LogInfo($"Prepare to listen to namespace {k8snamespace}.");
+            LogInfo($"Prepare to listen to namespace {kubeNamespace}.");
             var eventStream = GetService<IKubeApiClient>().PodsV1()
-                .WatchAll(kubeNamespace: k8snamespace);
+                .WatchAll(kubeNamespace: kubeNamespace);
             eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(subsequentEvent =>
                 {
                     try

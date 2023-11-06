@@ -18,7 +18,7 @@ namespace Daily.Carp
         /// <summary>
         /// ASP.NET Core中的ServiceProvider
         /// </summary>
-        internal static IServiceProvider ServiceProvider { get; set; }
+        public static IServiceProvider ServiceProvider { get; set; }
 
         /// <summary>
         /// ASP.NET Core中容器实例获取
@@ -52,32 +52,6 @@ namespace Daily.Carp
         }
 
         private static readonly ConcurrentDictionary<string, int> Polling = new ConcurrentDictionary<string, int>();
-
-        /// <summary>
-        /// 通过ServiceName轮询获取DownstreamHostAndPorts地址
-        /// </summary>
-        /// <param name="serviceName"></param>
-        /// <returns></returns>
-        public static string GetAddressByServiceName(string serviceName)
-        {
-            var carpConfigurationActivator = ServiceProvider.GetService<CarpConfigurationActivator>();
-            var proxyConfig = carpConfigurationActivator.YarpConfigProvider.GetConfig();
-            var hosts = proxyConfig.Clusters.Where(c => c.ClusterId == $"ClusterId-{serviceName}")
-                .Select(c => c.Destinations.Keys);
-            string result = "";
-
-            var servers = hosts.First().ToList();
-            var polling = Polling.GetOrAdd(serviceName, s => 0);
-            if (polling >= servers.Count)
-            {
-                Polling[serviceName] = 0;
-            }
-            var index = Polling[serviceName];
-            var server = servers[index];
-            
-            Polling[serviceName] += 1;
-            return server.Trim();
-        }
 
         public static void LogInfo(string info)
         {

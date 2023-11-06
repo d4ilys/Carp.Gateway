@@ -8,9 +8,9 @@ var builder = WebApplication.CreateBuilder(args).InjectCarp();
 // Add services to the container.
 
 
-builder.Configuration.AddApollo(builder.Configuration.GetSection("Apollo"))
-    .AddDefault()
-    .AddNamespace(ConfigConsts.NamespaceApplication);
+//builder.Configuration.AddApollo(builder.Configuration.GetSection("Apollo"))
+//    .AddDefault()
+//    .AddNamespace(ConfigConsts.NamespaceApplication);
 
 
 builder.Services.AddCarp().AddKubernetes();

@@ -1,21 +1,7 @@
-﻿using Daily.Carp.Yarp;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Security.Authentication;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Unicode;
-using System.Threading.Tasks;
-using Daily.Carp.Feature;
-using Microsoft.Extensions.Configuration;
+﻿using Daily.Carp.Feature;
+using Daily.Carp.Yarp;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Extensions.WebEncoders.Testing;
+using System.Text.Json;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
 
@@ -27,16 +13,6 @@ namespace Daily.Carp.Configuration
     public abstract class CarpConfigurationActivator
     {
         /// <summary>
-        /// 内部专用IOC
-        /// </summary>
-        private IServiceCollection InternelServiceCollection = new ServiceCollection();
-
-        /// <summary>
-        /// 内部专用IOC
-        /// </summary>
-        private IServiceProvider? InternalServiceProvider;
-
-        /// <summary>
         /// Yarp核心配置提供者
         /// </summary>
         public CarpProxyConfigProvider YarpConfigProvider { get; set; }
@@ -46,35 +22,29 @@ namespace Daily.Carp.Configuration
             YarpConfigProvider = provider;
         }
 
-
         /// <summary>
         /// 初始化
         /// </summary>
         public abstract void Initialize();
 
         /// <summary>
-        /// 刷新配置
+        /// 刷新全部配置
         /// </summary>
         public abstract void RefreshAll();
 
-        public abstract void Refresh(string serviceName);
 
         /// <summary>
-        /// 内部容器添加服务
+        /// 局部刷新
         /// </summary>
-        /// <param name="action"></param>
-        public void ConfigureServices(Action<IServiceCollection>? action = null)
-        {
-            action?.Invoke(InternelServiceCollection);
-            InternalServiceProvider = InternelServiceCollection.BuildServiceProvider();
-        }
+        /// <param name="serviceName"></param>
+        public abstract void Refresh(string serviceName);
 
         /// <summary>
         /// 获取内部容器服务
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T GetService<T>() => InternalServiceProvider.GetService<T>();
+        public T GetService<T>() => CarpApp.GetRootService<T>();
 
         /// <summary>
         /// 按服务名称注入配置

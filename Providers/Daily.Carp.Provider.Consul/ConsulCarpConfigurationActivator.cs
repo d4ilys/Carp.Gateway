@@ -21,25 +21,17 @@ namespace Daily.Carp.Provider.Consul
 
         public ConsulCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
         {
-            ConfigureServices(service =>
-            {
-                var carpConfigConsul = CarpApp.GetCarpConfig().Consul;
-
-                _config = new ConsulRegistryConfiguration(carpConfigConsul.Protocol, carpConfigConsul.Host,
-                    carpConfigConsul.Port, "", carpConfigConsul.Token);
-                service.AddSingleton<IConsulClientFactory>(new ConsulClientFactory(_config));
-            });
-
             Initialize();
         }
 
-        public override void Initialize()
+        public sealed override void Initialize()
         {
             RefreshAll();
             TimingUpdate();
         }
 
         public override void RefreshAll() => Inject(GetServices);
+
         public override void Refresh(string serviceName)
         {
             throw new NotImplementedException();
@@ -52,10 +44,7 @@ namespace Daily.Carp.Provider.Consul
             {
                 var timer = new Timer();
                 timer.Interval = CarpApp.GetCarpConfig().Consul.Interval;
-                timer.Elapsed += (sender, eventArgs) =>
-                {
-                    RefreshAll();
-                };
+                timer.Elapsed += (sender, eventArgs) => { RefreshAll(); };
                 timer.Start();
             });
         }
@@ -99,7 +88,6 @@ namespace Daily.Carp.Provider.Consul
 
         private Service BuildService(ServiceEntry serviceEntry, Node serviceNode)
         {
-            
             var services = new Service();
 
             services.Host = serviceNode == null ? serviceEntry.Service.Address : serviceNode.Name;
@@ -120,7 +108,5 @@ namespace Daily.Carp.Provider.Consul
 
             return true;
         }
-
-      
     }
 }

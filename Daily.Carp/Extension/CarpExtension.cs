@@ -3,6 +3,7 @@ using Daily.Carp.Internel;
 using Daily.Carp.Yarp;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using Microsoft.Extensions.Hosting;
 using Yarp.ReverseProxy.Configuration;
 
 namespace Daily.Carp.Extension
@@ -19,6 +20,7 @@ namespace Daily.Carp.Extension
                     ServerCertificateCustomValidationCallback = (message, cert, chain, error) => true
                 };
             });
+
             ICarpBuilder builder = new CarpBuilder();
             builder.Service = service;
             builder.ProxyConfigProvider = new CarpProxyConfigProvider();
@@ -41,8 +43,8 @@ namespace Daily.Carp.Extension
         /// <param name="builder"></param>
         public static void AddNormal(this ICarpBuilder builder)
         {
-            var provider = new NormalCarpConfigurationActivator(builder.ProxyConfigProvider);
-            builder.Service.AddSingleton<CarpConfigurationActivator>(provider);
+            builder.Service.AddHostedService(serviceProvider =>
+                new NormalGenericHostedService(serviceProvider.GetService<IHost>(), serviceProvider, builder));
         }
     }
 

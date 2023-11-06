@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 
 namespace Daily.Carp.Extension
 {
@@ -13,8 +15,6 @@ namespace Daily.Carp.Extension
         public static WebApplicationBuilder InjectCarp(this WebApplicationBuilder builder)
         {
             CarpApp.Configuration = builder.Configuration;
-
-            builder.Services.AddHostedService<GenericHostedService>();
 
             builder.Services.AddHttpContextAccessor();
 

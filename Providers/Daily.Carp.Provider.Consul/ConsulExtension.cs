@@ -1,6 +1,7 @@
 ﻿using Daily.Carp.Configuration;
 using Daily.Carp.Provider.Consul;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Daily.Carp.Extension
 {
@@ -12,8 +13,14 @@ namespace Daily.Carp.Extension
         /// <param name="builder"></param>
         public static void AddConsul(this ICarpBuilder builder)
         {
-            var provider = new ConsulCarpConfigurationActivator(builder.ProxyConfigProvider);
-            builder.Service.AddSingleton<CarpConfigurationActivator>(provider);
+            var carpConfigConsul = CarpApp.GetCarpConfig().Consul;
+            var config = new ConsulRegistryConfiguration(carpConfigConsul.Protocol, carpConfigConsul.Host,
+                carpConfigConsul.Port, "", carpConfigConsul.Token);
+
+            builder.Service.AddSingleton<IConsulClientFactory>(new ConsulClientFactory(config));
+
+            builder.Service.AddHostedService(serviceProvider =>
+                new ConsulGenericHostedService(serviceProvider.GetService<IHost>(), serviceProvider, builder));
         }
     }
 }
