@@ -27,30 +27,26 @@ namespace Daily.LinkTracking
             try
             {
                 // 获取所有未成功验证的需求
-                var serviceName = "";
+                var routePath = "";
                 try
                 {
-                    serviceName = context.Request.Path.Value.Split("/")[1];
+                    routePath = $"/{context.Request.Path.Value.Split("/")[1]}";
                 }
                 catch
                 {
                 }
 
-                string GetTempServiceName(string temp)
-                {
-                    var strings = temp.Split("/");
-                    return temp.StartsWith("/") ? strings[1] : strings[0];
-                }
-
                 var needVerification =
                     CarpApp.CarpConfig.Routes.Any(c =>
-                        c.PermissionsValidation.Any() &&
-                        GetTempServiceName(c.ServiceName.ToLower()) == serviceName.ToLower());
+                    {
+                        var startsWith = c.PermissionsValidation.Any() && c.PathTemplate.ToLower().StartsWith(routePath.ToLower());
+                        return startsWith;
+                    });
                 //需要验证
                 if (needVerification)
                 {
                     //自定义授权
-                    var carpRouteConfig = CarpApp.CarpConfig.Routes.FirstOrDefault(c => c.ServiceName == serviceName);
+                    var carpRouteConfig = CarpApp.CarpConfig.Routes.FirstOrDefault(c => c.PathTemplate.ToLower().StartsWith(routePath.ToLower()));
                     var permissionVerificationGroups = carpRouteConfig?.PermissionsValidation;
                     if (permissionVerificationGroups != null)
                     {

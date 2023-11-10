@@ -31,6 +31,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Consul.Client02", "Demos\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthenticationCenter", "Demos\AUC\AuthenticationCenter\AuthenticationCenter.csproj", "{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebSocket.Demo", "WebSocket.Demo", "{AFA0EC2F-9EAE-4869-BEE2-9B333FDAC6C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSocket.Demo01", "Demos\WebSocket.Demo\WebSocket.Demo01\WebSocket.Demo01.csproj", "{6FC48C74-1570-4A73-BD7C-4829341D457F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +77,10 @@ Global
 		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FC48C74-1570-4A73-BD7C-4829341D457F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FC48C74-1570-4A73-BD7C-4829341D457F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FC48C74-1570-4A73-BD7C-4829341D457F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FC48C74-1570-4A73-BD7C-4829341D457F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,6 +97,8 @@ Global
 		{128F8015-50CC-48A2-A4B2-0CB7C47ABA6C} = {6599D6A4-606E-4E5F-A6B0-4C6EC271F2C1}
 		{867F3E25-F212-4CDB-970E-11D8CD421B61} = {097E938E-EE0A-4F17-BB31-2DE4132F800A}
 		{D452D9F7-4CFB-4773-AFE8-2599949AE3A9} = {128F8015-50CC-48A2-A4B2-0CB7C47ABA6C}
+		{AFA0EC2F-9EAE-4869-BEE2-9B333FDAC6C0} = {6599D6A4-606E-4E5F-A6B0-4C6EC271F2C1}
+		{6FC48C74-1570-4A73-BD7C-4829341D457F} = {AFA0EC2F-9EAE-4869-BEE2-9B333FDAC6C0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EF0D572-4FF8-4762-BD03-AC4720F48372}

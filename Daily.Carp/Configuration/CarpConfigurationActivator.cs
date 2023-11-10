@@ -88,9 +88,10 @@ namespace Daily.Carp.Configuration
                         var address = addressFunc.Invoke(service.ServiceName);
                         foreach (var item in address)
                         {
+                            var serviceString = item.ToString();
                             DestinationConfig destinationConfig = new DestinationConfig
                             {
-                                Address = item.ToString()
+                                Address = serviceString
                             };
 
                             destinations.Add($"{item}", destinationConfig);
@@ -120,12 +121,15 @@ namespace Daily.Carp.Configuration
                             DangerousAcceptAnyServerCertificate = true
                         },
                         HttpRequest = service.HttpVersion == "2"
-                            ? null
+                            ?  new ForwarderRequestConfig()
+                            {
+                                ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
+                            }
                             : new ForwarderRequestConfig()
                             {
                                 Version = new Version(service.HttpVersion),
                                 VersionPolicy = HttpVersionPolicy.RequestVersionExact,
-                                ActivityTimeout = TimeSpan.FromSeconds(10)
+                                ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
                             }
                     };
                     clusterConfigs.Add(clusterConfig);
@@ -230,12 +234,15 @@ namespace Daily.Carp.Configuration
                             DangerousAcceptAnyServerCertificate = true
                         },
                         HttpRequest = service.HttpVersion == "2"
-                            ? null
+                            ?  new ForwarderRequestConfig()
+                            {
+                                ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
+                            }
                             : new ForwarderRequestConfig()
                             {
                                 Version = new Version(service.HttpVersion),
                                 VersionPolicy = HttpVersionPolicy.RequestVersionExact,
-                                ActivityTimeout = TimeSpan.FromSeconds(10)
+                                ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
                             }
                     };
                     clusterConfigs.Add(clusterConfig);

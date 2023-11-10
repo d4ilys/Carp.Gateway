@@ -64,6 +64,11 @@
         public string HttpVersion { get; set; } = "2";
 
         /// <summary>
+        /// 空闲超时时长
+        /// </summary>
+        public double ActivityTimeout { get; set; } = 5;
+
+        /// <summary>
         /// 手动指定端口
         /// </summary>
         public int Port { get; set; } = 0;
