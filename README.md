@@ -4,9 +4,7 @@
 ✨ [Quick Start](#quick-start) <br />
 ☁️ [集成Kubernetes](#kubernetes) <br />
 🍢 [集成Consul](#consul) <br />
-⚓ [普通代理模式](#普通代理模式) <br />
-🧊 [集成Swagger](#集成swagger) <br />
-🚨 [鉴权认证](#鉴权认证)
+⚓ [普通代理模式](#普通代理模式) <br />⚓ [GRPC](#GRPC) <br />⚓ [WebSocket](#WebSocket) <br />🧊 [集成Swagger](#集成swagger) <br />
 
 #### **前言**
 
@@ -84,7 +82,7 @@ Ocelot 每次负载均衡请求 Kubernertes Pod时，需要先调用一遍API Se
 
 和Ocelot不同的是，Carp 会在项目启动的时候就把Service-Pod信息初始化完毕，采取观察者模式监控Pod的创建与删除 动态更新Pods信息 这样就避免了每次转发都需要请求API Server的问题
 
-需要注意的是，在Kubernetes 中需要再ServiceAccount 中增加 pods 的权限，Carp才能实时监控Pod的事件信息
+需要注意的是，在Kubernetes 中需要再ServiceAccount 中增加 pods 的权限，Carp才能实时监控Pod的事件信息，**下方有完整的yaml实例**
 
 ![1d7b5ed2623bf5349b8e148947bec5d](https://user-images.githubusercontent.com/54463101/228444662-a3b03a25-2a62-40e2-a068-a711de124535.png)
 
@@ -196,6 +194,149 @@ app.Run("http://*:6005");
       }
     ]
   }
+~~~
+
+> Kubernetes部署yaml文件参考
+
+~~~yaml
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: gateway
+  namespace: dev
+  labels:
+    app: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: gateway
+    spec:
+      volumes:
+        - name: app-conf
+          configMap:
+            name: sharedsettings
+            defaultMode: 420
+        - name: localtime
+          hostPath:
+            path: /usr/share/zoneinfo/Asia/Shanghai
+            type: File
+        - name: tmpdir
+          emptyDir:
+            medium: Memory
+      containers:
+        - name: gateway
+          image: 192.168.1.1:8000/lemiservice/gateway:dev.20231005.18.42.41
+          ports:
+            - containerPort: 5107
+              protocol: TCP
+          resources:
+            limits:
+              cpu: '4'
+              memory: 4Gi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          volumeMounts:
+            - name: app-conf
+              readOnly: true
+              mountPath: /app/SharedConfig/appsettings.Shared.json
+              subPath: appsettings.Shared.json
+            - name: localtime
+              readOnly: true
+              mountPath: /etc/localtime
+            - name: tmpdir
+              mountPath: /tmp
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      serviceAccount: gateway
+      serviceAccountName : gateway
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: harbor-admin-secret
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - gateway
+                topologyKey: kubernetes.io/hostname
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: dev
+  labels:
+    app: gateway
+spec:
+  type: NodePort
+  ports:
+  - port: 5107
+    targetPort: 5107
+    nodePort: 31000
+  selector:
+    app: gateway
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gateway
+  namespace: dev
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: read-endpoints
+  namespace: dev
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  name: permissive-binding
+  namespace: dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: read-endpoints
+subjects:
+- kind: ServiceAccount
+  name: gateway
+  namespace: dev
 ~~~
 
 #### Consul
