@@ -6,7 +6,7 @@
 🍢 [集成Consul](#consul) <br />
 ⚓ [普通代理模式](#普通代理模式) <br />
 🧊 [集成Swagger](#集成swagger) <br />
-🚨 [认证中心](#认证中心)
+🚨 [鉴权认证](#鉴权认证)
 
 #### **前言**
 
@@ -70,7 +70,7 @@ app.Run();
         "ServiceName": "Demo",
         "PathTemplate": "/api/{**catch-all}",   //客户端请求路由
         "TransmitPathTemplate": "{**catch-all}",  //下游转发路由
-        "DownstreamHostAndPorts": [ "www.baidu.com", "www.jd.com" ]
+        "DownstreamHostAndPorts": [ "https://www.baidu.com", "https://www.jd.com" ]
       }
     ]
   }
@@ -95,26 +95,61 @@ Install-Package Carp.Gateway.Provider.Kubernetes
 ~~~
 
 ~~~C#
-using Com.Ctrip.Framework.Apollo;
-using Com.Ctrip.Framework.Apollo.Core;
 using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
 // Add services to the container.
 
-builder.Services.AddCarp().AddKubernetes();  //添加Kubernetes支持
+builder.Services.AddCarp().AddKubernetes();
 
 builder.Services.AddControllers();
+
+#region 支持跨域  所有的Api都支持跨域
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder.SetIsOriginAllowed((x) => true)
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+#endregion 支持跨域  所有的Api都支持跨域
+
 
 var app = builder.Build();
 
 app.UseStaticFiles();
 
+app.UseCors("CorsPolicy");
+
 app.UseCarp(options =>
 {
-    options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
     options.EnableAuthentication = true; //启用权限验证
+    options.CustomAuthenticationAsync.Add("Jwt", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
+    {
+        //自定义鉴权逻辑
+        var flag = true;
+        //验证逻辑
+        flag = false;
+        //.....
+        return await Task.FromResult(flag);
+    });
+    
+    //可以多个
+    options.CustomAuthenticationAsync.Add("Other", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
+    {
+        //自定义鉴权逻辑
+        var flag = true;
+        //验证逻辑
+        flag = false;
+        //.....
+        return await Task.FromResult(flag);
+    });
 });
 
 app.MapControllers();
@@ -131,7 +166,7 @@ app.Run("http://*:6005");
       {
         "Descriptions": "基础服务集群",
         "ServiceName": "basics",
-        "PermissionsValidation": true,
+        "PermissionsValidation": ["Jwt","Other"],
         "PathTemplate": "/Basics/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
@@ -139,7 +174,7 @@ app.Run("http://*:6005");
       {
         "Descriptions": "主业务服务集群",
         "ServiceName": "business",
-        "PermissionsValidation": true,
+      "PermissionsValidation": ["Jwt"],
         "PathTemplate": "/Business/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
@@ -147,7 +182,6 @@ app.Run("http://*:6005");
       {
         "Descriptions": "登录服务集群",
         "ServiceName": "lgcenter",
-        "PermissionsValidation": false, //登录服务不用开启鉴权
         "PathTemplate": "/Login/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
@@ -155,16 +189,8 @@ app.Run("http://*:6005");
       {
         "Descriptions": "日志服务的集群",
         "ServiceName": "logs",
-        "PermissionsValidation": false,
+        "PermissionsValidation": ["Jwt"],
         "PathTemplate": "/Log/{**catch-all}",
-        "LoadBalancerOptions": "PowerOfTwoChoices",
-        "DownstreamScheme": "http"
-      },
-      {
-        "Descriptions": "App服务的集群",
-        "ServiceName": "appservice",
-        "PermissionsValidation": true,
-        "PathTemplate": "/AppService/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
       }
@@ -247,8 +273,27 @@ app.UseStaticFiles();
 
 app.UseCarp(options =>
 {
-    options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
-    options.EnableAuthentication = true; //启用权限验证
+   options.EnableAuthentication = true; //启用权限验证
+    options.CustomAuthenticationAsync.Add("Jwt", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
+    {
+        //自定义鉴权逻辑
+        var flag = true;
+        //验证逻辑
+        flag = false;
+        //.....
+        return await Task.FromResult(flag);
+    });
+    
+    //可以多个
+    options.CustomAuthenticationAsync.Add("Other", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
+    {
+        //自定义鉴权逻辑
+        var flag = true;
+        //验证逻辑
+        flag = false;
+        //.....
+        return await Task.FromResult(flag);
+    });
 });
 
 app.MapControllers();
@@ -263,7 +308,7 @@ app.Run("http://*:6005");
       {
         "Descriptions": "基础服务集群",
         "ServiceName": "basics",
-        "PermissionsValidation": true,
+         "PermissionsValidation": ["Jwt","Other"],
         "PathTemplate": "/Basics/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http",
@@ -273,7 +318,7 @@ app.Run("http://*:6005");
       {
         "Descriptions": "主业务服务集群",
         "ServiceName": "business",
-        "PermissionsValidation": true,
+         "PermissionsValidation": ["Jwt"],  //具体验证逻辑在UseCarp中间件中
         "PathTemplate": "/Business/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http",
@@ -281,6 +326,47 @@ app.Run("http://*:6005");
       }
     ] 
   }
+~~~
+
+#### GRPC
+
+在Demos/Grpc中有详细的例子
+
+#### WebSocket
+
+~~~JSON
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+
+  "Carp": {
+    "Routes": [
+      {
+        "Descriptions": "简单的例子",
+        "ServiceName": "Basics",
+        "PathTemplate": "/Basics/{**catch-all}", //客户端请求路由
+        "PermissionsValidation": [ "Jwt" ],
+        "TransmitPathTemplate": "/Basics/{**catch-all}", //下游转发路由
+        "DownstreamScheme": "http",
+        "DownstreamHostAndPorts": [ "192.168.1.113:31000" ]
+      },
+      //WebSocket转发
+      {
+        "Descriptions": "WebSocket服务器",
+        "ServiceName": "ImServer",
+        "PathTemplate": "/ImServer/{**catch-all}", 
+        "TransmitPathTemplate": "/ImServer/{**catch-all}",
+        "DownstreamScheme": "ws", 
+        "DownstreamHostAndPorts": [ "192.168.1.113:31002" ]
+      }
+    ]
+  },
+  "AllowedHosts": "*"
+}
 ~~~
 
 #### 集成Swagger
@@ -438,16 +524,4 @@ app.Run();
 ~~~
 
 ![image](https://github.com/luoyunchong/IGeekFan.AspNetCore.Knife4jUI/assets/54463101/d011c6c1-e782-49e3-95d0-9de35a2f9fe4)
-
-* 如果你的Swagger需要暴漏在外网 可以开启密码认证 - 以下是开启Swagger鉴权效果
-
-![image](https://github.com/d4ilys/Daily.ASPNETCore.Mini/assets/54463101/93f21178-ff24-4279-8473-08711091087b)
-
-* 如果直接访问JSON文件 不输入密码直接401
-
-![image](https://github.com/d4ilys/Daily.ASPNETCore.Mini/assets/54463101/38755d91-db29-44eb-ad6b-dba2a1837940)
-
-#### 认证中心
-
-Demos-AUC文件夹中已经提供鉴权中心的Demo
 

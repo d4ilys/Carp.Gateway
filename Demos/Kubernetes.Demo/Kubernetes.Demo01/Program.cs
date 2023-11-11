@@ -1,17 +1,8 @@
-using Com.Ctrip.Framework.Apollo;
-using Com.Ctrip.Framework.Apollo.Core;
 using Daily.Carp.Extension;
-using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
 // Add services to the container.
-
-
-//builder.Configuration.AddApollo(builder.Configuration.GetSection("Apollo"))
-//    .AddDefault()
-//    .AddNamespace(ConfigConsts.NamespaceApplication);
-
 
 builder.Services.AddCarp().AddKubernetes();
 
@@ -32,11 +23,6 @@ builder.Services.AddCors(options =>
 
 #endregion 支持跨域  所有的Api都支持跨域
 
-builder.WebHost.UseKestrel(options =>
-{
-    var x509ca = new X509Certificate2(File.ReadAllBytes(@"jtys.cqyt.petrochina.pfx"));
-    options.ListenAnyIP(6005, listenOptions => listenOptions.UseHttps(x509ca));
-});
 
 var app = builder.Build();
 
@@ -46,10 +32,17 @@ app.UseCors("CorsPolicy");
 
 app.UseCarp(options =>
 {
-    options.AuthenticationCenter = builder.Configuration["AuthenticationCenter_Url"];  //认证中心的地址
     options.EnableAuthentication = true; //启用权限验证
+    options.CustomAuthenticationAsync.Add("Jwt", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
+    {
+        var flag = true;
+        //验证逻辑
+        flag = false;
+        //.....
+        return await Task.FromResult(flag);
+    });
 });
 
 app.MapControllers();
 
-app.Run();
+app.Run("http://*:6005");
