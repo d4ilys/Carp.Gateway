@@ -501,8 +501,7 @@ app.Run("http://*:6005");
         "ServiceName": "ImServer",
         "PathTemplate": "/ImServer/{**catch-all}", 
         "TransmitPathTemplate": "/ImServer/{**catch-all}",
-        "DownstreamScheme": "ws", 
-        "DownstreamHostAndPorts": [ "192.168.1.113:31002" ]
+        "DownstreamHostAndPorts": [ "wss://192.168.1.113:30000" ]
       }
     ]
   },

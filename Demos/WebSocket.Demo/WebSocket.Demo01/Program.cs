@@ -16,7 +16,6 @@ namespace WebSocket.Demo01
             builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.AddSwaggerGen();
-
             
             builder.Services.AddCarp().AddNormal();
 
@@ -31,15 +30,11 @@ namespace WebSocket.Demo01
 
             app.UseAuthorization();
 
-            app.UseCarp(options =>
-            {
-                options.EnableAuthentication = true;
-                options.CustomAuthenticationAsync.Add("Jwt",  () => Task.FromResult(true));
-            });
+            app.UseCarp();
 
             app.MapControllers();
 
-            app.Run();
+            app.Run("http://*:5031");
         }
     }
 }
