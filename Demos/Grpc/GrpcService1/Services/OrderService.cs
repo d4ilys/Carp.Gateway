@@ -1,6 +1,5 @@
+using Basics;
 using Grpc.Core;
-using GrpcService1;
-using Microsoft.AspNetCore.Components;
 
 namespace GrpcService1.Services
 {
