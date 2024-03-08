@@ -5,12 +5,23 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using Microsoft.Extensions.Hosting;
 using Yarp.ReverseProxy.Configuration;
+using Yarp.ReverseProxy.Transforms;
+using System.Linq;
 
 namespace Daily.Carp.Extension
 {
+    /// <summary>
+    /// 扩展
+    /// </summary>
     public static class CarpExtension
     {
-        public static ICarpBuilder AddCarp(this IServiceCollection service)
+        /// <summary>
+        /// 添加Carp IOC注册
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static ICarpBuilder AddCarp(this IServiceCollection service, Action<CarpOptions>? options = null)
         {
             //HttpClientFactory
             service.AddHttpClient("nossl").ConfigurePrimaryHttpMessageHandler(() =>
@@ -24,13 +35,25 @@ namespace Daily.Carp.Extension
             ICarpBuilder builder = new CarpBuilder();
             builder.Service = service;
             builder.ProxyConfigProvider = new CarpProxyConfigProvider();
-            service.AddReverseProxy()
-                .LoadFormCoustom(builder.ProxyConfigProvider);
+
+            var reverseProxyBuilder = service.AddReverseProxy()
+                .LoadFormCustom(builder.ProxyConfigProvider);
+
+            //扩展注入
+            if (options != null)
+            {
+                CarpOptions option = new CarpOptions();
+
+                options.Invoke(option);
+
+                option.ReverseProxyBuilderInject?.Invoke(reverseProxyBuilder);
+            }
+
             return builder;
         }
 
         //通过K8S加载
-        internal static IReverseProxyBuilder LoadFormCoustom(this IReverseProxyBuilder builder,
+        internal static IReverseProxyBuilder LoadFormCustom(this IReverseProxyBuilder builder,
             IProxyConfigProvider configProvider)
         {
             builder.Services.AddSingleton<IProxyConfigProvider>(configProvider);
@@ -58,6 +81,12 @@ namespace Daily.Carp.Extension
     public class CarpBuilder : ICarpBuilder
     {
         public CarpProxyConfigProvider ProxyConfigProvider { get; set; }
+
         public IServiceCollection Service { get; set; }
+    }
+
+    public class CarpOptions
+    {
+        public Action<IReverseProxyBuilder> ReverseProxyBuilderInject { get; set; } = null;
     }
 }

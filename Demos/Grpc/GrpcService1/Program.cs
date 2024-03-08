@@ -12,6 +12,8 @@ namespace GrpcService1
             // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
 
             // Add services to the container.
+            builder.Services.AddControllers();
+
             builder.Services.AddGrpc();
 
             var app = builder.Build();
@@ -20,6 +22,8 @@ namespace GrpcService1
             app.MapGrpcService<GreeterService>();
 
             app.MapGrpcService<OrderService>();
+
+            app.MapControllers();
 
             app.Run("https://*:7213");
         }

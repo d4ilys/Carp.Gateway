@@ -1,4 +1,4 @@
-﻿using Basics;
+﻿using Basics.Grpc;
 using Grpc.Net.Client;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,25 +17,34 @@ namespace GrpcClient1
         }
 
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var channel = ServiceProvider.GetService<GrpcChannel>();
-            foreach (var item in Enumerable.Range(0, 10))
-            {
-                var orderClient = new Order.OrderClient(channel);
-                var helloReply = orderClient.Pay(new OrderParam()
-                {
-                    OrderId = "6666"
-                });
-                Console.WriteLine(helloReply);
-            }
+            //foreach (var item in Enumerable.Range(0, 10))
+            //{
+            //    var orderClient = new Order.OrderClient(channel);
+            //    var helloReply = orderClient.Pay(new OrderParam()
+            //    {
+            //        OrderId = "6666"
+            //    });
+            //    Console.WriteLine(helloReply);
+            //}
 
-            var greeterClient = new Greeter.GreeterClient(channel);
-            var sayHello = greeterClient.SayHello(new HelloRequest()
+            while (true)
             {
-                Name = "Daily"
-            });
-            Console.WriteLine(sayHello);
+                Console.ReadKey();
+                var greeterClient = new Greeter.GreeterClient(channel);
+                var sayHello = greeterClient.SayHello(new HelloRequest()
+                {
+                    Name = "Daily"
+                });
+                Console.WriteLine(sayHello);
+                var httpClientFactory = ServiceProvider.GetService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient("nossl");
+                var httpResponseMessage = await httpClient.GetAsync("https://localhost:7212/basics/Home/Index");
+                var readAsStringAsync = await httpResponseMessage.Content.ReadAsStringAsync();
+                Console.WriteLine(readAsStringAsync);
+            }
         }
     }
 }

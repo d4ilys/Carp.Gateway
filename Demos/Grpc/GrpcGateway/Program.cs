@@ -1,4 +1,5 @@
 using Daily.Carp.Extension;
+using Yarp.ReverseProxy.Transforms;
 
 namespace GrpcGateway
 {
@@ -12,7 +13,30 @@ namespace GrpcGateway
 
             builder.Services.AddControllers();
 
-            builder.Services.AddCarp().AddNormal();
+            builder.Services.AddCarp(options =>
+            {
+                //À©Õ¹YARP ÊÊÅäGrpc
+                options.ReverseProxyBuilderInject = proxyBuilder =>
+                {
+                    proxyBuilder.AddTransforms(context =>
+                    {
+                        context.AddRequestTransform(transformContext =>
+                        {
+                            if (transformContext.Path.HasValue)
+                            {
+                                var routers = transformContext.Path.Value.Split("/");
+                                if (routers[2].Contains("grpc", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var newUrl = $"/{string.Join("/", routers.Skip(2))}";
+                                    transformContext.Path = newUrl;
+                                }
+                            }
+
+                            return ValueTask.CompletedTask;
+                        });
+                    });
+                };
+            }).AddNormal();
 
             var app = builder.Build();
 

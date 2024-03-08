@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option csharp_namespace = "Basics";
+option csharp_namespace = "Basics.Grpc";
 
-package Basics;
+package Basics.Grpc;
 
 // The greeting service definition.
 service Greeter {

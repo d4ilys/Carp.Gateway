@@ -1,4 +1,5 @@
 using Basics;
+using Basics.Grpc;
 using Grpc.Core;
 
 namespace GrpcService1.Services
