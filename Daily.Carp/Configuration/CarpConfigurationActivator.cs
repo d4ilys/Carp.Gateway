@@ -152,6 +152,7 @@ namespace Daily.Carp.Configuration
                         Match = new RouteMatch
                         {
                             Path = service.PathTemplate,
+                            Hosts = service.Hosts
                         },
                         Transforms = transforms.Any() ? transforms : null
                     };

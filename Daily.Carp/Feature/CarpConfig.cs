@@ -84,6 +84,11 @@
         public string PathTemplate { get; set; }
 
         /// <summary>
+        /// 主机
+        /// </summary>
+        public List<string>? Hosts { get; set; } 
+
+        /// <summary>
         /// 转发路由模板
         /// </summary>
         public string TransmitPathTemplate { get; set; }

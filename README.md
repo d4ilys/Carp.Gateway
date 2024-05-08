@@ -443,6 +443,7 @@ app.Run("http://*:6005");
 ~~~
 
 ~~~json
+
 "Carp": {
     "Namespace": "dev",
     "Routes": [
@@ -467,6 +468,44 @@ app.Run("http://*:6005");
       }
     ] 
   }
+
+~~~
+
+> 根据域名转发
+
+~~~json
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "Carp": {
+    "Routes": [
+      {
+        "Descriptions": "Jd域名转发",
+        "ServiceName": "Jd",
+        "PathTemplate": "{**catch-all}",
+        "Hosts": [ "jd.daily.com" ],
+        "TransmitPathTemplate": "{**catch-all}", 
+        "DownstreamHostAndPorts": [ "https://jd.com" ]
+      },
+      {
+        "Descriptions": "Baidu域名转发",
+        "ServiceName": "Baidu",
+        "PathTemplate": "{**catch-all}",
+        "Hosts": [ "baidu.daily.com" ],
+        "TransmitPathTemplate": "{**catch-all}", //下游转发路由  
+        "DownstreamHostAndPorts": ["https://baidu.com" ]
+      }    
+    ] 
+  },
+  "AllowedHosts": "*"
+} 
+ 
+
 ~~~
 
 #### GRPC
