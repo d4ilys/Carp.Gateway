@@ -82,7 +82,7 @@ Ocelot 每次负载均衡请求 Kubernertes Pod时，需要先调用一遍API Se
 
 和Ocelot不同的是，Carp 会在项目启动的时候就把Service 信息初始化完毕，采取观察者模式监控Pod的创建与删除 动态更新Service信息 这样就避免了每次转发都需要请求API Server
 
-需要注意的是，在Kubernetes 中需要再ServiceAccount 中增加 pods 的权限，Carp才能实时监控Pod的事件信息，**下方有完整的yaml实例**
+需要注意的是，在Kubernetes 中需要再ServiceAccount 中增加 pods、service、watch等权限，Carp才能实时监控Service的事件信息，**下方有完整的yaml实例**
 
 ![1d7b5ed2623bf5349b8e148947bec5d](https://user-images.githubusercontent.com/54463101/228444662-a3b03a25-2a62-40e2-a068-a711de124535.png)
 
