@@ -24,44 +24,18 @@ namespace Daily.Carp.Provider.Kubernetes
         public sealed override void Initialize()
         {
             RefreshAll();
-            Watch();
             TimingUpdate();
         }
 
         public override void RefreshAll()
         {
-            Inject(KubernetesGainer.GetPodEndPointAddress);
+            Inject(KubernetesGainer.GetServiceInternalPointAddress);
             LogInfo($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Configuration refresh.");
         }
 
         public override void Refresh(string serviceName)
         {
-            RefreshInject(s => KubernetesGainer.GetPodEndPointAddress(serviceName), serviceName);
-        }
-
-
-        private void Watch()
-        {
-            var carpConfig = GetCarpConfig();
-            var kubeNamespace = carpConfig.Kubernetes.Namespace;
-            //监听Service变化，实时更新Yarp配置
-            LogInfo($"Prepare to listen to namespace {kubeNamespace}.");
-            var eventStream = GetService<IKubeApiClient>().PodsV1()
-                .WatchAll(kubeNamespace: kubeNamespace);
-            eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(subsequentEvent =>
-                {
-                    try
-                    {
-                        var serviceName = subsequentEvent.Metadata.Labels["app"];
-                        Refresh(serviceName);
-                    }
-                    catch (Exception e)
-                    {
-                        LogError($"Listening to pod fail.{Environment.NewLine}Message: {e.Message}");
-                    }
-                },
-                error => LogError($"Listening to pod fail.{Environment.NewLine}Message: {error.Message}"),
-                () => { LogInfo("Listening to pod completed."); });
+            RefreshInject(s => KubernetesGainer.GetServiceInternalPointAddress(serviceName), serviceName);
         }
 
 
@@ -76,7 +50,5 @@ namespace Daily.Carp.Provider.Kubernetes
                 timer.Start();
             });
         }
-
-
     }
 }

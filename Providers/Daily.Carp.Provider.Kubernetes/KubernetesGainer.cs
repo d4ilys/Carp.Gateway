@@ -62,38 +62,41 @@ namespace Daily.Carp.Provider.Kubernetes
                     }
                 }
 
-                //var clientV1 = new EndPointClientV1(client: client);
-                //var endpointsV1 = clientV1.Get(serviceName, namespaces).ConfigureAwait(true).GetAwaiter()
-                //    .GetResult();
-                //foreach (var item in endpointsV1.Subsets)
-                //{
-                //    try
-                //    {
-                //        var port = item.Ports.First().Port;
-                //        foreach (var endpointAddressV1 in item.Addresses)
-                //        {
-                //            if (carpRouteConfig.Port != 0)
-                //            {
-                //                port = carpRouteConfig.Port;
-                //            }
-
-                //            var host = $"{endpointAddressV1.Ip}:{port}";
-                //            services.Add(new Service()
-                //            {
-                //                Host = endpointAddressV1.Ip,
-                //                Port = port,
-                //                Protocol = carpRouteConfig.DownstreamScheme
-                //            });
-                //        }
-                //    }
-                //    catch (Exception e)
-                //    {
-                //        LogError($"Endpoints foreach error {Environment.NewLine}Message:{e}");
-                //        continue;
-                //    }
-                //}
-
                 LogInfo($"EndPoint {JsonConvert.SerializeObject(services)}.");
+            }
+            catch (Exception e)
+            {
+                LogError($"Endpoints error {Environment.NewLine}Message:{e}");
+            }
+
+
+            return services;
+        }
+
+        /// <summary>
+        /// 通过服务名称获取Pods运行服务的 IP Port
+        /// </summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        public static List<Service> GetServiceInternalPointAddress(string serviceName)
+        {
+            var services = new List<Service>();
+            try
+            {
+                var carpConfig = GetCarpConfig();
+                var kubeNamespace = carpConfig.Kubernetes.Namespace;
+                var client = GetRootService<IKubeApiClient>();
+                var carpRouteConfig = GetCarpConfig().Routes.First(c => c.ServiceName == serviceName);
+                var kubeService =  client.ServicesV1().Get(serviceName, kubeNamespace).ConfigureAwait(false).GetAwaiter().GetResult();
+                var host = kubeService.Spec.ClusterIP;
+                var port = kubeService.Spec.Ports[0].Port;
+                services.Add(new Service()
+                {
+                    Host = host,
+                    Port = Convert.ToInt32(port),
+                    Protocol = carpRouteConfig.DownstreamScheme
+                });
+                LogInfo($"Service - EndPoint Init ：{JsonConvert.SerializeObject(services)}.");
             }
             catch (Exception e)
             {
