@@ -16,7 +16,6 @@
 		<PackageIcon>logo.png</PackageIcon>
 		<RepositoryUrl>https://github.com/d4ilys/Carp.Gateway.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<Version>0.6.5</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

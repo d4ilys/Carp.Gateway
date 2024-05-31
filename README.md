@@ -80,7 +80,7 @@ app.Run();
 
 Ocelot 每次负载均衡请求 Kubernertes Pod时，需要先调用一遍API Server，在我看来会对Kubernetes集群造成影响。
 
-和Ocelot不同的是，Carp 会在项目启动的时候就把Service-Pod信息初始化完毕，采取观察者模式监控Pod的创建与删除 动态更新Pods信息 这样就避免了每次转发都需要请求API Server的问题
+和Ocelot不同的是，Carp 会在项目启动的时候就把Service 信息初始化完毕，采取观察者模式监控Pod的创建与删除 动态更新Service信息 这样就避免了每次转发都需要请求API Server
 
 需要注意的是，在Kubernetes 中需要再ServiceAccount 中增加 pods 的权限，Carp才能实时监控Pod的事件信息，**下方有完整的yaml实例**
 
@@ -231,7 +231,7 @@ spec:
             medium: Memory
       containers:
         - name: gateway
-          image: 192.168.1.1:8000/lemiservice/gateway:dev.20231005.18.42.41
+          image: 192.168.1.1:8000/service/gateway:dev.20231005.18.42.41
           ports:
             - containerPort: 5107
               protocol: TCP
@@ -318,6 +318,7 @@ rules:
   resources:
   - endpoints
   - pods
+  - service
   verbs:
   - get
   - list
