@@ -18,7 +18,7 @@ namespace Daily.Carp
         /// <summary>
         /// ASP.NET Core中的ServiceProvider
         /// </summary>
-        internal static IServiceProvider ServiceProvider { get; set; }
+        public static IServiceProvider ServiceProvider { get; set; }
 
         /// <summary>
         /// ASP.NET Core中容器实例获取

@@ -1,6 +1,7 @@
 ﻿using Daily.Carp.Extension;
 using Daily.Carp.Feature;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Yarp.ReverseProxy.Model;
 
 namespace Daily.Carp.Retry;
@@ -43,7 +44,7 @@ public class RetryMiddleware
 
     private async Task RetryTrigger(HttpContext context)
     {
-        if (context.Response.StatusCode != 200)
+        if (context.Response.StatusCode >= 400)
         {
             var carpReverseProxyFeature = context.GetCarpReverseProxyFeature();
 
@@ -75,8 +76,6 @@ public class RetryMiddleware
 
         //重试次数+1
         RetryCount.Value++;
-
-        CarpApp.LogInfo($"Trigger retry {RetryCount.Value} : {carpReverseProxyFeature.YarpReverseProxyFeature?.ProxiedDestination?.DestinationId}");
 
         //获取当前状态码
         var statusCode = context.Response.StatusCode;
@@ -132,6 +131,8 @@ public class RetryMiddleware
                 context.Request.Body.Position = 0;
                 context.Response.Clear();
                 reverseProxyFeature.ProxiedDestination = null;
+
+                CarpApp.LogInfo($"Trigger retry {RetryCount.Value} : {context.Request.GetDisplayUrl()}");
 
                 //重新调用中间件
                 await _next(context);
