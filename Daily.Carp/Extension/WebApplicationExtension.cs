@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Daily.Carp.Retry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 
@@ -21,17 +22,29 @@ namespace Daily.Carp.Extension
             return builder;
         }
 
+        /// <summary>
+        /// 代理中间件
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
         public static WebApplication UseCarp(this WebApplication app, Action<CarpAppOptions>? options = null)
         {
-            var optionsInternal = new CarpAppOptions();
-            optionsInternal.App = app;
+            var optionsInternal = new CarpAppOptions
+            {
+                App = app
+            };
             options?.Invoke(optionsInternal);
             if (optionsInternal.EnableAuthentication)
             {
-                 app.UseCarpAuthenticationMiddleware(optionsInternal);
+                app.UseCarpAuthenticationMiddleware(optionsInternal);
             }
 
-            app.MapReverseProxy();
+            app.MapReverseProxy(builder =>
+            {
+                builder.UseMiddleware<RetryMiddleware>();
+                optionsInternal.ReverseConfigApp?.Invoke(builder);
+            });
 
             return app;
         }
@@ -47,7 +60,8 @@ namespace Daily.Carp.Extension
         /// <summary>
         /// 自定义鉴权
         /// </summary>
-        public Dictionary<string,Func<Task<bool>>> CustomAuthenticationAsync { get; set; } = new Dictionary<string, Func<Task<bool>>>();
+        public Dictionary<string, Func<Task<bool>>> CustomAuthenticationAsync { get; set; } =
+            new Dictionary<string, Func<Task<bool>>>();
 
         /// <summary>
         /// 是否开启权限验证
@@ -60,5 +74,10 @@ namespace Daily.Carp.Extension
         public string AuthenticationCenter { get; set; } = string.Empty;
 
         public WebApplication App { get; set; }
+
+        /// <summary>
+        /// MapReverseProxy 参数
+        /// </summary>
+        public Action<IReverseProxyApplicationBuilder>? ReverseConfigApp { get; set; } = null;
     }
 }

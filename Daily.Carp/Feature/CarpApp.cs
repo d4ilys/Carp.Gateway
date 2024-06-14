@@ -18,18 +18,13 @@ namespace Daily.Carp
         /// <summary>
         /// ASP.NET Core中的ServiceProvider
         /// </summary>
-        public static IServiceProvider ServiceProvider { get; set; }
+        internal static IServiceProvider ServiceProvider { get; set; }
 
         /// <summary>
         /// ASP.NET Core中容器实例获取
         /// </summary>
         public static T GetRootService<T>()
         {
-            if (ServiceProvider == null)
-            {
-                return default;
-            }
-
             return ServiceProvider.GetService<T>();
         }
 
@@ -53,6 +48,10 @@ namespace Daily.Carp
 
         private static readonly ConcurrentDictionary<string, int> Polling = new ConcurrentDictionary<string, int>();
 
+        /// <summary>
+        /// 信息日志
+        /// </summary>
+        /// <param name="info"></param>
         public static void LogInfo(string info)
         {
             if (CarpApp.CarpConfig != null && CarpApp.CarpConfig.ShowLogInformation)
@@ -69,6 +68,10 @@ namespace Daily.Carp
             }
         }
 
+        /// <summary>
+        /// 错误日志
+        /// </summary>
+        /// <param name="info"></param>
         public static void LogError(string info)
         {
             var log = CarpApp.GetRootService<ILogger<CarpApp>>();
@@ -81,5 +84,38 @@ namespace Daily.Carp
                 Console.WriteLine($"Carp: {info}");
             }
         }
+
+        /// <summary>
+        /// 根据ServiceName 生成Yarp ClusterId
+        /// </summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        internal static string GenerateYarpClusterId(string serviceName)
+        {
+            return $"ClusterId-{serviceName}";
+        }
+
+        /// <summary>
+        /// 根据 ClusterId 获取 ServiceName
+        /// </summary>
+        /// <param name="clusterId"></param>
+        /// <returns></returns>
+        internal static string GetCarpServiceByClusterId(string clusterId)
+        {
+            return clusterId.Replace("ClusterId-", "");
+        }
+
+        /// <summary>
+        /// 根据ServiceName 生成Yarp RouteId
+        /// </summary>
+        /// <param name="serviceName"></param>
+        /// <returns></returns>
+        internal static string GenerateYarpRouteId(string serviceName)
+        {
+            return $"RouteId-{serviceName}";
+        }
+
+
+
     }
 }

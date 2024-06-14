@@ -467,9 +467,30 @@ app.Run("http://*:6005");
         "DownstreamScheme": "http",
         "DownstreamHostAndPorts" : [ "192.168.0.114:8001","192.168.0.115:8001"]
       }
+    ]  
+  }
+~~~
+
+#### 错误重试
+
+~~~json
+{
+  "Carp": {
+    "Routes": [
+      {
+        "Descriptions": "简单的例子",
+        "ServiceName": "Basics",
+        "PathTemplate": "/Basics/{**catch-all}", 
+        "TransmitPathTemplate": "{**catch-all}", 
+        "DownstreamHostAndPorts": [ "https://jd.com", "https://xxx.aasd.casd", "https://xxx.aasasd.casd", "https://xxx.aassssasd.casd" ],
+        "RetryPolicy": {    //重试策略
+          "RetryCount": 2,  //默认3次，重试次数
+          "RetryOnStatusCodes": [ "5xx","404" ]  //可以不配置，默认5xx
+        }
+      }  
     ] 
   }
-
+}
 ~~~
 
 > 根据域名转发

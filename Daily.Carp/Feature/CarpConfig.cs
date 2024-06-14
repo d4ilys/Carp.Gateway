@@ -14,6 +14,9 @@
         public List<CarpRouteConfig> Routes { get; set; }
     }
 
+    /// <summary>
+    /// Kubernetes配置
+    /// </summary>
     public class Kubernetes
     {
         /// <summary>
@@ -22,11 +25,17 @@
         public string Namespace { get; set; } = "default";
     }
 
+    /// <summary>
+    /// Consul配置
+    /// </summary>
     public class Consul
     {
         public string Protocol { get; }
+
         public string Host { get; }
+
         public int Port { get; }
+
         public string Token { get; }
 
         /// <summary>
@@ -35,6 +44,9 @@
         public int Interval { get; set; } = 3 * 1000;
     }
 
+    /// <summary>
+    /// 路由转发配置
+    /// </summary>
     public class CarpRouteConfig
     {
         /// <summary>
@@ -86,7 +98,7 @@
         /// <summary>
         /// 主机
         /// </summary>
-        public List<string>? Hosts { get; set; } 
+        public List<string>? Hosts { get; set; }
 
         /// <summary>
         /// 转发路由模板
@@ -97,5 +109,27 @@
         /// 负载均衡策略
         /// </summary>
         public string LoadBalancerOptions { get; set; } = "PowerOfTwoChoices";
+
+        /// <summary>
+        /// 重试策略
+        /// </summary>
+        public RetryPolicy? RetryPolicy { get; set; }
+    }
+
+
+    /// <summary>
+    /// 重试策略
+    /// </summary>
+    public class RetryPolicy
+    {
+        /// <summary>
+        ///重试次数
+        /// </summary>
+        public int RetryCount { get; set; } = 3;
+
+        /// <summary>
+        /// 要重试的状态码，默认大于500
+        /// </summary>
+        public IList<string> RetryOnStatusCodes { get; set; } = new List<string>();
     }
 }

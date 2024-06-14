@@ -96,6 +96,14 @@ namespace Daily.Carp.Provider.Kubernetes
                     Port = Convert.ToInt32(port),
                     Protocol = carpRouteConfig.DownstreamScheme
                 });
+                try
+                {
+                    carpRouteConfig.DownstreamHostAndPorts.AddRange(services.Select(s => s.ToString()));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
                 LogInfo($"Service - EndPoint Init ：{JsonConvert.SerializeObject(services)}.");
             }
             catch (Exception e)

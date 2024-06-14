@@ -121,7 +121,7 @@ namespace Daily.Carp.Configuration
                             DangerousAcceptAnyServerCertificate = true
                         },
                         HttpRequest = service.HttpVersion == "2"
-                            ?  new ForwarderRequestConfig()
+                            ? new ForwarderRequestConfig()
                             {
                                 ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
                             }
@@ -224,7 +224,7 @@ namespace Daily.Carp.Configuration
                     }
 
 
-                    var clusterId = $"ClusterId-{service.ServiceName}";
+                    var clusterId = CarpApp.GenerateYarpClusterId(service.ServiceName);
                     ClusterConfig clusterConfig = new ClusterConfig
                     {
                         ClusterId = clusterId,
@@ -235,7 +235,7 @@ namespace Daily.Carp.Configuration
                             DangerousAcceptAnyServerCertificate = true
                         },
                         HttpRequest = service.HttpVersion == "2"
-                            ?  new ForwarderRequestConfig()
+                            ? new ForwarderRequestConfig()
                             {
                                 ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
                             }
@@ -248,7 +248,7 @@ namespace Daily.Carp.Configuration
                     };
                     clusterConfigs.Add(clusterConfig);
 
-                    var routeId = $"RouteId-{service.ServiceName}";
+                    var routeId = CarpApp.GenerateYarpRouteId(service.ServiceName);
 
                     var transforms = new List<IReadOnlyDictionary<string, string>>();
                     if (!string.IsNullOrWhiteSpace(service.TransmitPathTemplate))
