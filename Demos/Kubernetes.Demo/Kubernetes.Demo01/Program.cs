@@ -1,5 +1,6 @@
 using Daily.Carp.Extension;
 using Daily.Carp.Provider.Kubernetes;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
@@ -43,6 +44,7 @@ app.UseCarp(options =>
         return await Task.FromResult(flag);
     });
 });
+
 
 app.MapControllers();
 

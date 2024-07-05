@@ -1,27 +1,15 @@
 #### 目录
 
-🍧 [**前言**](#前言)  <br />
+🍧 [**概述**](#概述)  <br />
 ✨ [Quick Start](#quick-start) <br />
 ☁️ [集成Kubernetes](#kubernetes) <br />🎭 [Kubernetes无感升级](#Kubernetes实现用户无感升级) <br />🍢 [集成Consul](#consul) <br />
 ⚓ [普通代理模式](#普通代理模式) <br />🥨 [错误重试](#错误重试) <br />🎡 [权限验证](#权限验证) <br />🎉 [GRPC](#GRPC) <br />👍 [WebSocket](#WebSocket) <br />🧊 [集成Swagger](#集成swagger) <br />
 
-#### **前言**
+#### **概述**
 
-说到 .NET Core API Gateway 首先想到的应该是 Ocelot，生态十分成熟，支持 Kubernetes、Consul、Eureka等服务注册发现的中间件 支持Polly 进行 熔断、降级、重试等，功能十分的强大，但是在.NET 5问世后，作者貌似已经逐渐停止维护此项目.
+Carp.Gateway 是.NET下生态的网关 基于微软的Yarp实现
 
-由于我们项目一直在使用Ocelot作为网关 而且已经升级到 .Net 7 基于现状 我们计划重新设计开发一个网关，经过调研发现微软官方已经提供了一个反向代理的组件**YARP**
-
-Yarp 是微软团队开发的一个反向代理**组件**， 官方出品值得信赖 👍
-
-源码仓库：https://github.com/microsoft/reverse-proxy
-
-文档地址 ：https://microsoft.github.io/reverse-proxy/
-
-如果有兴趣可以添加我的QQ963922242 进一步交流
-
-Carp是.NET Core 下生态的网关 统一对外提供API管理、鉴权、身份认证、Swagger集成 等
-
-支持Kubernetes、Consul  支持负载均衡、反向代理
+支持**Kubernetes**、Consul
 
 #### Quick Start 
 
@@ -40,10 +28,6 @@ using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();  //注入配置
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-
 builder.Services.AddCarp().AddNormal();  
 
 var app = builder.Build();
@@ -51,8 +35,6 @@ var app = builder.Build();
 app.UseAuthorization();
 
 app.UseCarp();
-
-app.MapControllers();
 
 app.Run();
 ~~~
@@ -140,23 +122,21 @@ builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
       {
         "Descriptions": "基础服务集群",
         "ServiceName": "basics",
-        "PermissionsValidation": ["Jwt","Other"],
-        "PathTemplate": "/Basics/{**catch-all}",
+        "PathTemplate": "/basics/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
       },
       {
         "Descriptions": "主业务服务集群",
         "ServiceName": "business",
-      "PermissionsValidation": ["Jwt"],
-        "PathTemplate": "/Business/{**catch-all}",
+        "PathTemplate": "/business/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
       },
       {
         "Descriptions": "登录服务集群",
         "ServiceName": "lgcenter",
-        "PathTemplate": "/Login/{**catch-all}",
+        "PathTemplate": "/login/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
       },
@@ -164,7 +144,7 @@ builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
         "Descriptions": "日志服务的集群",
         "ServiceName": "logs",
         "PermissionsValidation": ["Jwt"],
-        "PathTemplate": "/Log/{**catch-all}",
+        "PathTemplate": "/log/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http"
       }
@@ -378,23 +358,23 @@ app.Run();
 ~~~
 
 ~~~json
-  "Carp": {
+"Carp": {
     "Consul": {
-      "Host": "localhost",
-      "Port": 8500,
-      "Protocol": "http",
-      "Token": "",
-      "Interval": 2000   //轮询查询更新Consul Service信息 ，默认3秒 单位毫秒
+        "Host": "localhost",
+        "Port": 8500,
+        "Protocol": "http",
+        "Token": "",
+        "Interval": 2000   //轮询查询更新Consul Service信息 ，默认3秒 单位毫秒
     },
     "Routes": [
-      {
-        "Descriptions": "简单的例子",
-        "ServiceName": "DemoService",
-        "LoadBalancerOptions": "RoundRobin",
-        "PathTemplate": "basics/{**catch-all}"
-      }
+        {
+            "Descriptions": "简单的例子",
+            "ServiceName": "DemoService",
+            "LoadBalancerOptions": "RoundRobin",
+            "PathTemplate": "basics/{**catch-all}"
+        }
     ]
-  }
+}
 ~~~
 
 #### 普通代理模式
@@ -418,15 +398,13 @@ app.Run();
 ~~~
 
 ~~~json
-
 "Carp": {
     "Namespace": "dev",
     "Routes": [
       {
         "Descriptions": "基础服务集群",
         "ServiceName": "basics",
-         "PermissionsValidation": ["Jwt","Other"],
-        "PathTemplate": "/Basics/{**catch-all}",
+        "PathTemplate": "/basics/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http",
         "DownstreamHostAndPorts" : [ "192.168.0.112:8001","192.168.0.113:8001"]
@@ -435,8 +413,7 @@ app.Run();
       {
         "Descriptions": "主业务服务集群",
         "ServiceName": "business",
-         "PermissionsValidation": ["Jwt"],  //具体验证逻辑在UseCarp中间件中
-        "PathTemplate": "/Business/{**catch-all}",
+        "PathTemplate": "/business/{**catch-all}",
         "LoadBalancerOptions": "PowerOfTwoChoices",
         "DownstreamScheme": "http",
         "DownstreamHostAndPorts" : [ "192.168.0.114:8001","192.168.0.115:8001"]
@@ -449,7 +426,6 @@ app.Run();
 > 根据域名转发
 
 ~~~json
-
 {
   "Logging": {
     "LogLevel": {
@@ -479,8 +455,6 @@ app.Run();
   },
   "AllowedHosts": "*"
 } 
- 
-
 ~~~
 
 #### GRPC
@@ -503,8 +477,7 @@ app.Run();
       {
         "Descriptions": "简单的例子",
         "ServiceName": "Basics",
-        "PathTemplate": "/Basics/{**catch-all}", //客户端请求路由
-        "PermissionsValidation": [ "Jwt" ],
+        "PathTemplate": "/basics/{**catch-all}", //客户端请求路由
         "TransmitPathTemplate": "/Basics/{**catch-all}", //下游转发路由
         "DownstreamScheme": "http",
         "DownstreamHostAndPorts": [ "192.168.1.113:31000" ]
@@ -513,8 +486,8 @@ app.Run();
       {
         "Descriptions": "WebSocket服务器",
         "ServiceName": "ImServer",
-        "PathTemplate": "/ImServer/{**catch-all}", 
-        "TransmitPathTemplate": "/ImServer/{**catch-all}",
+        "PathTemplate": "/imServer/{**catch-all}", 
+        "TransmitPathTemplate": "/imServer/{**catch-all}",
         "DownstreamHostAndPorts": [ "wss://192.168.1.113:30000" ]
       }
     ]
@@ -628,62 +601,6 @@ Install-Package AspNetCore.Knife4jUI
 
 ~~~
 
-~~~JSON
-
-//以下DEMO基于Kubernetes
-{
-  "Carp": {
-        "Kubernetes": {
-          "Namespace": "test"
-        },
-        "Routes": [
-          {
-            "Descriptions": "基础服务集群",
-            "ServiceName": "basics",
-            "PermissionsValidation": true,
-            "PathTemplate": "/Basics/{**catch-all}",
-            "LoadBalancerOptions": "PowerOfTwoChoices",
-            "DownstreamScheme": "http"
-          },
-          {
-            "Descriptions": "主业务服务集群",
-            "ServiceName": "business",
-            "PermissionsValidation": true,
-            "PathTemplate": "/Business/{**catch-all}",
-            "LoadBalancerOptions": "PowerOfTwoChoices",
-            "DownstreamScheme": "http"
-          },
-          // 如果每个服务的Swagger路由都是默认，需要在网关中配置Swagger
-          // 例如你的 Basics 服务中的 Swagger地址为swagger/v1/swagger.json
-          // Business地址也是swagger/v1/swagger.json
-          // 这样就需要以下配置
-          // 如果Swagger.json地址按服务路由配置则不用。
-          // business/swagger/v1/swagger.json
-          // basics/swagger/v1/swagger.json
-          {
-            "Descriptions": "基础服务Swagger",
-            "ServiceName": "basics",
-            "PermissionsValidation": false,
-            "PathTemplate": "/Basics-Swagger/{**remainder}",
-            "TransmitPathTemplate": "{**remainder}", 
-            "LoadBalancerOptions": "PowerOfTwoChoices",
-            "DownstreamScheme": "http"
-          },
-          {
-            "Descriptions": "主业务服务Swagger",
-            "ServiceName": "business",
-            "PermissionsValidation": false,
-            "PathTemplate": "/Business-Swagger/{**remainder}",
-            "TransmitPathTemplate": "{**remainder}", 
-            "LoadBalancerOptions": "PowerOfTwoChoices",
-            "DownstreamScheme": "http"
-          }
-        ]
-      }
-}
-
-~~~
-
 ~~~c#
 
 using Daily.Carp.Extension;
@@ -701,19 +618,6 @@ builder.Services.AddCarp().AddKubernetes();
 
 builder.Services.AddControllers();
 
-//支持跨域
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CorsPolicy", builder =>
-    {
-        builder.SetIsOriginAllowed((x) => true)
-            .AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
-
 //添加Swagger配置
 builder.Services.AddSwaggerGen(c =>
 {
@@ -729,38 +633,47 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-app.UseStaticFiles();
-
-app.UseCors("CorsPolicy");
-
-//根据Carp配置路由信息形成集合
-//[{
-//    "name": "Basics API",
-//    "url": "Basics-Swagger/swagger/v1/swagger.json"
-//},
-//{
-//    "name": "Business API",
-//    "url": "Business-Swagger/swagger/v1/swagger.json"
-//}]
-
-var swaggers = JsonConvert.DeserializeObject<List<SwaggerJson>>("上面的JSON数组");
-
 app.UseKnife4UI(c =>
 {
-    
     c.Authentication = true; //开启鉴权
-    c.Password = "daily";   //设置密码
-    swaggers.ForEach(sj =>
-    {
-	c.SwaggerEndpoint(sj,url, sj.name);
-    });
- 
+    c.Password = "123456";   //设置密码
+    //配置服务swagger信息
+    c.SwaggerEndpoint("basics/swagger/v1/swagger.json", "Basics API");
+    c.SwaggerEndpoint("Business/swagger/v1/swagger.json", "Business API");
 });
 
 app.MapControllers();
 
 app.Run();
 
+~~~
+
+~~~json
+
+//以下DEMO基于Kubernetes
+{
+  "Carp": {
+        "Kubernetes": {
+          "Namespace": "test"
+        },
+        "Routes": [
+          {
+            "Descriptions": "基础服务集群",
+            "ServiceName": "basics",
+            "PathTemplate": "/basics/{**catch-all}",
+            "LoadBalancerOptions": "PowerOfTwoChoices",
+            "DownstreamScheme": "http"
+          },
+          {
+            "Descriptions": "主业务服务集群",
+            "ServiceName": "business",
+            "PathTemplate": "/business/{**catch-all}",
+            "LoadBalancerOptions": "PowerOfTwoChoices",
+            "DownstreamScheme": "http"
+          }
+        ]
+      }
+}
 ~~~
 
 ![image](https://github.com/luoyunchong/IGeekFan.AspNetCore.Knife4jUI/assets/54463101/d011c6c1-e782-49e3-95d0-9de35a2f9fe4)
