@@ -59,11 +59,7 @@ app.Run();
 
 #### Kubernetes
 
-Ocelot 每次负载均衡请求时，需要先调用一遍API Server查询EndPoint，这样会浪费一部分性能。
-
-和Ocelot不同的是，Carp 会在项目启动的时候就把Service信息初始化完毕，采取观察者模式监控Pod的创建与删除 动态更新Service信息 或者 直接使用ClusterIP直接进行访问，这样就避免了每次转发都需要请求API Server
-
-需要注意的是，在Kubernetes 中需要再ServiceAccount 中增加 pods、service、watch等权限，Carp才能实时监控Service的事件信息，**下方有完整的yaml实例**
+在Kubernetes 中需要再ServiceAccount 中增加 pods、service、watch等权限，Carp才能实时监控Service的事件信息，**下方有完整的yaml实例**
 
 ![1d7b5ed2623bf5349b8e148947bec5d](https://user-images.githubusercontent.com/54463101/228444662-a3b03a25-2a62-40e2-a068-a711de124535.png)
 
@@ -152,7 +148,7 @@ builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
   }
 ~~~
 
-> Kubernetes部署yaml文件参考
+> Gateway部署yaml文件参考
 
 ~~~yaml
 kind: Deployment
@@ -174,40 +170,20 @@ spec:
         app: gateway
     spec:
       volumes:
-        - name: app-conf
-          configMap:
-            name: sharedsettings
-            defaultMode: 420
         - name: localtime
           hostPath:
             path: /usr/share/zoneinfo/Asia/Shanghai
             type: File
-        - name: tmpdir
-          emptyDir:
-            medium: Memory
       containers:
         - name: gateway
           image: 192.168.1.1:8000/service/gateway:dev.20231005.18.42.41
           ports:
-            - containerPort: 5107
+            - containerPort: 8888
               protocol: TCP
-          resources:
-            limits:
-              cpu: '4'
-              memory: 4Gi
-            requests:
-              cpu: 100m
-              memory: 100Mi
           volumeMounts:
-            - name: app-conf
-              readOnly: true
-              mountPath: /app/SharedConfig/appsettings.Shared.json
-              subPath: appsettings.Shared.json
             - name: localtime
               readOnly: true
               mountPath: /etc/localtime
-            - name: tmpdir
-              mountPath: /tmp
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent
@@ -250,8 +226,8 @@ metadata:
 spec:
   type: NodePort
   ports:
-  - port: 5107
-    targetPort: 5107
+  - port: 8888
+    targetPort: 8888
     nodePort: 31000
   selector:
     app: gateway
