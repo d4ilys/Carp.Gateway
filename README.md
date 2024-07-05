@@ -28,7 +28,7 @@ using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args)；
 
-builder.Services.AddCarp().AddNormal();  
+builder.Services.AddCarp();  
 
 var app = builder.Build();
 
@@ -388,7 +388,7 @@ using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCarp().AddNormal();  //普通代理
+builder.Services.AddCarp(); 
 
 var app = builder.Build();
 
