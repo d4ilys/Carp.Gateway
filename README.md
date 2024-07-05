@@ -26,7 +26,7 @@ Install-Package Carp.Gateway
 ~~~C#
 using Daily.Carp.Extension;
 
-var builder = WebApplication.CreateBuilder(args).InjectCarp();  //注入配置
+var builder = WebApplication.CreateBuilder(args)；
 
 builder.Services.AddCarp().AddNormal();  
 
@@ -76,7 +76,7 @@ Install-Package Carp.Gateway.Provider.Kubernetes
 ~~~C#
 using Daily.Carp.Extension;
 
-var builder = WebApplication.CreateBuilder(args).InjectCarp();
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCarp().AddKubernetes();
 
@@ -338,7 +338,7 @@ using Com.Ctrip.Framework.Apollo;
 using Com.Ctrip.Framework.Apollo.Core;
 using Daily.Carp.Extension;
 
-var builder = WebApplication.CreateBuilder(args).InjectCarp();
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
@@ -386,7 +386,7 @@ Install-Package Carp.Gateway
 ~~~c#
 using Daily.Carp.Extension;
 
-var builder = WebApplication.CreateBuilder(args).InjectCarp();
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCarp().AddNormal();  //普通代理
 
@@ -611,7 +611,7 @@ using System.Data;
 using Daily.Carp;
 using IGeekFan.AspNetCore.Knife4jUI;
 
-var builder = WebApplication.CreateBuilder(args).InjectCarp();
+var builder = WebApplication.CreateBuilder(args);
 
 //添加Carp配置
 builder.Services.AddCarp().AddKubernetes();
