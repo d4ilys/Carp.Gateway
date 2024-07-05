@@ -3,7 +3,7 @@
 🍧 [**前言**](#前言)  <br />
 ✨ [Quick Start](#quick-start) <br />
 ☁️ [集成Kubernetes](#kubernetes) <br />🎭 [Kubernetes无感升级](#Kubernetes实现用户无感升级) <br />🍢 [集成Consul](#consul) <br />
-⚓ [普通代理模式](#普通代理模式) <br />🥨 [错误重试](#错误重试) <br />🎉 [GRPC](#GRPC) <br />👍 [WebSocket](#WebSocket) <br />🧊 [集成Swagger](#集成swagger) <br />
+⚓ [普通代理模式](#普通代理模式) <br />🥨 [错误重试](#错误重试) <br />🎡 [权限验证](#权限验证) <br />🎉 [GRPC](#GRPC) <br />👍 [WebSocket](#WebSocket) <br />🧊 [集成Swagger](#集成swagger) <br />
 
 #### **前言**
 
@@ -77,9 +77,9 @@ app.Run();
 
 #### Kubernetes
 
-Ocelot 每次负载均衡请求 Kubernertes Pod时，需要先调用一遍API Server，在我看来会对Kubernetes集群造成影响。
+Ocelot 每次负载均衡请求时，需要先调用一遍API Server查询EndPoint，这样会浪费一部分性能。
 
-和Ocelot不同的是，Carp 会在项目启动的时候就把Service 信息初始化完毕，采取观察者模式监控Pod的创建与删除 动态更新Service信息 这样就避免了每次转发都需要请求API Server
+和Ocelot不同的是，Carp 会在项目启动的时候就把Service信息初始化完毕，采取观察者模式监控Pod的创建与删除 动态更新Service信息 或者 直接使用ClusterIP直接进行访问，这样就避免了每次转发都需要请求API Server
 
 需要注意的是，在Kubernetes 中需要再ServiceAccount 中增加 pods、service、watch等权限，Carp才能实时监控Service的事件信息，**下方有完整的yaml实例**
 
@@ -96,61 +96,17 @@ using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
-// Add services to the container.
 builder.Services.AddCarp().AddKubernetes();
 
 builder.Services.AddControllers();
-
-#region 支持跨域  所有的Api都支持跨域
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CorsPolicy", builder =>
-    {
-        builder.SetIsOriginAllowed((x) => true)
-            .AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
-
-#endregion 支持跨域  所有的Api都支持跨域
-
 
 var app = builder.Build();
 
 app.UseStaticFiles();
 
-app.UseCors("CorsPolicy");
+app.UseCarp();
 
-app.UseCarp(options =>
-{
-    options.EnableAuthentication = true; //启用权限验证
-    options.CustomAuthenticationAsync.Add("Jwt", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
-    {
-        //自定义鉴权逻辑
-        var flag = true;
-        //验证逻辑
-        flag = false;
-        //.....
-        return await Task.FromResult(flag);
-    });
-    
-    //可以多个
-    options.CustomAuthenticationAsync.Add("Other", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
-    {
-        //自定义鉴权逻辑
-        var flag = true;
-        //验证逻辑
-        flag = false;
-        //.....
-        return await Task.FromResult(flag);
-    });
-});
-
-app.MapControllers();
-
-app.Run("http://*:6005");
+app.Run();
 ~~~
 
 > Kubernetes服务发现类型说明
@@ -414,15 +370,11 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
-app.UseCarp(options =>
-{
-    options.AuthenticationCenter = "http://localhost:5000";  //认证中心的地址
-    options.EnableAuthentication = true; //启用权限验证
-});
+app.UseCarp();
 
 app.MapControllers();
 
-app.Run("http://*:6005");
+app.Run();
 ~~~
 
 ~~~json
@@ -452,50 +404,17 @@ Install-Package Carp.Gateway
 ~~~
 
 ~~~c#
-using Com.Ctrip.Framework.Apollo;
-using Com.Ctrip.Framework.Apollo.Core;
 using Daily.Carp.Extension;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
-// Add services to the container.
-
 builder.Services.AddCarp().AddNormal();  //普通代理
-
-builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.UseStaticFiles();
+app.UseCarp();
 
-app.UseCarp(options =>
-{
-   options.EnableAuthentication = true; //启用权限验证
-    options.CustomAuthenticationAsync.Add("Jwt", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
-    {
-        //自定义鉴权逻辑
-        var flag = true;
-        //验证逻辑
-        flag = false;
-        //.....
-        return await Task.FromResult(flag);
-    });
-    
-    //可以多个
-    options.CustomAuthenticationAsync.Add("Other", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
-    {
-        //自定义鉴权逻辑
-        var flag = true;
-        //验证逻辑
-        flag = false;
-        //.....
-        return await Task.FromResult(flag);
-    });
-});
-
-app.MapControllers();
-
-app.Run("http://*:6005");
+app.Run();
 ~~~
 
 ~~~json
@@ -603,6 +522,62 @@ app.Run("http://*:6005");
   "AllowedHosts": "*"
 }
 ~~~
+
+#### 权限验证
+
+~~~c#
+app.UseCarp(options =>
+{
+    options.EnableAuthentication = true; //启用权限验证
+    options.CustomAuthenticationAsync.Add("Jwt", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
+    {
+        //自定义鉴权逻辑
+        var flag = true;
+        //验证逻辑
+        flag = false;
+        //.....
+        return await Task.FromResult(flag);
+    });
+    
+    //可以多个
+    options.CustomAuthenticationAsync.Add("Signature", async () => //这里的 “Signature” 对应的是配置文件中的PermissionsValidation数组中的值
+    {
+        //自定义鉴权逻辑
+        var flag = true;
+        //验证逻辑
+        flag = false;
+        //.....
+        return await Task.FromResult(flag);
+    });
+});
+~~~
+
+~~~json
+ "Carp": {
+    "Routes": [
+      {
+        "Descriptions": "基础服务集群",
+        "ServiceName": "basics",
+        "PermissionsValidation": ["Jwt","Signature"],  //验证Jwt和Signature
+        "PathTemplate": "/Basics/{**catch-all}",
+        "LoadBalancerOptions": "PowerOfTwoChoices",
+        "DownstreamScheme": "http",
+        "DownstreamHostAndPorts": [ "192.168.1.113:31000" ]
+      },
+      {
+        "Descriptions": "主业务服务集群",
+        "ServiceName": "business",
+         "PermissionsValidation": ["Signature"], // 只验证Signature
+        "PathTemplate": "/Business/{**catch-all}",
+        "LoadBalancerOptions": "PowerOfTwoChoices",
+        "DownstreamScheme": "http",
+        "DownstreamHostAndPorts": [ "192.168.1.113:32000" ]
+      }
+    ]
+  }
+~~~
+
+
 
 #### 错误重试
 
