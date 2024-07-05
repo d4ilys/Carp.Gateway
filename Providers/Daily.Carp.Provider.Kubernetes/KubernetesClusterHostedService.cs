@@ -6,17 +6,21 @@ namespace Daily.Carp.Provider.Kubernetes
     /// <summary>
     /// 主机启动时构建KubernetesGenericHostedService
     /// </summary>
-    public class KubernetesGenericHostedService : IHostedService
+    public class KubernetesClusterHostedService : IHostedService
     {
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="host"></param>
-        public KubernetesGenericHostedService(IHost? host, IServiceProvider serviceProvider, ICarpBuilder carpBuilder)
+        /// <param name="carpBuild"></param>
+        /// <param name="type"></param>
+        public KubernetesClusterHostedService(IHost? host, IServiceProvider serviceProvider, ICarpBuilder carpBuilder,KubeDiscoveryType type)
         {
-            // 存储根服务
             CarpApp.ServiceProvider = serviceProvider;
-            var provider = new KubernetesCarpConfigurationActivator(carpBuilder.ProxyConfigProvider);
+            if (type == KubeDiscoveryType.ClusterIP)
+                _ = new KubernetesClusterIPCarpConfigurationActivator(carpBuilder.ProxyConfigProvider);
+            else
+                _ = new KubernetesWatchPodCarpConfigurationActivator(carpBuilder.ProxyConfigProvider);
         }
 
         /// <summary>

@@ -109,12 +109,15 @@ public class RetryMiddleware
 
         if (isRetry)
         {
-            var reverseProxyFeature = carpReverseProxyFeature.YarpReverseProxyFeature;
 
+            //获取到YarpReverseProxyFeature
+            var reverseProxyFeature = carpReverseProxyFeature.YarpReverseProxyFeature;
             if (reverseProxyFeature != null)
             {
+                //获取可用的下端地址
                 var available = reverseProxyFeature.AvailableDestinations;
 
+                //排查错误地址，获取健康的目标
                 var healthyDestinations = available
                     .Where(m => m != reverseProxyFeature.ProxiedDestination)
                     .ToList();

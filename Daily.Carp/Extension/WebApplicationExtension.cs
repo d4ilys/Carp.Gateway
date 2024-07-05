@@ -30,6 +30,7 @@ namespace Daily.Carp.Extension
         /// <returns></returns>
         public static WebApplication UseCarp(this WebApplication app, Action<CarpAppOptions>? options = null)
         {
+            //
             var optionsInternal = new CarpAppOptions
             {
                 App = app
@@ -49,7 +50,7 @@ namespace Daily.Carp.Extension
             return app;
         }
     }
-
+    
     public class CarpAppOptions
     {
         ///// <summary>

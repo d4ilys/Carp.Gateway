@@ -1,10 +1,11 @@
 using Daily.Carp.Extension;
+using Daily.Carp.Provider.Kubernetes;
 
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
 // Add services to the container.
 
-builder.Services.AddCarp().AddKubernetes();
+builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
 
 builder.Services.AddControllers();
 

@@ -58,11 +58,12 @@ namespace Daily.Carp.Provider.Kubernetes
                     }
                     catch (Exception e)
                     {
-                        LogError($"Endpoints foreach error {Environment.NewLine}Message:{e}");
+                        LogError($"{serviceName} - Endpoint initialize error {Environment.NewLine}Message:{e}.");
                     }
-                }
 
-                LogInfo($"EndPoint {JsonConvert.SerializeObject(services)}.");
+                    LogInfo(
+                        $"{serviceName} - Endpoint initialize successfully ：{JsonConvert.SerializeObject(services)}.");
+                }
             }
             catch (Exception e)
             {
@@ -87,7 +88,8 @@ namespace Daily.Carp.Provider.Kubernetes
                 var kubeNamespace = carpConfig.Kubernetes.Namespace;
                 var client = GetRootService<IKubeApiClient>();
                 var carpRouteConfig = GetCarpConfig().Routes.First(c => c.ServiceName == serviceName);
-                var kubeService =  client.ServicesV1().Get(serviceName, kubeNamespace).ConfigureAwait(false).GetAwaiter().GetResult();
+                var kubeService = client.ServicesV1().Get(serviceName, kubeNamespace).ConfigureAwait(false).GetAwaiter()
+                    .GetResult();
                 var host = kubeService.Spec.ClusterIP;
                 var port = kubeService.Spec.Ports[0].Port;
                 services.Add(new Service()
@@ -96,21 +98,15 @@ namespace Daily.Carp.Provider.Kubernetes
                     Port = Convert.ToInt32(port),
                     Protocol = carpRouteConfig.DownstreamScheme
                 });
-                try
-                {
-                    carpRouteConfig.DownstreamHostAndPorts.AddRange(services.Select(s => s.ToString()));
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-                LogInfo($"Service - EndPoint Init ：{JsonConvert.SerializeObject(services)}.");
+
+                carpRouteConfig.DownstreamHostAndPorts.AddRange(services.Select(s => s.ToString()));
+
+                LogInfo($"{serviceName} - ClusterIP initialize successfully ：{JsonConvert.SerializeObject(services)}.");
             }
             catch (Exception e)
             {
-                LogError($"Endpoints error {Environment.NewLine}Message:{e}");
+                LogError($"{serviceName} - ClusterIP initialize error {Environment.NewLine}Message:{e}.");
             }
-
 
             return services;
         }

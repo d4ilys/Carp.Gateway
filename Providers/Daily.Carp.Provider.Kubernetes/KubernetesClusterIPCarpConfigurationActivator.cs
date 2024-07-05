@@ -1,22 +1,14 @@
 ﻿using Daily.Carp.Configuration;
-using Daily.Carp.Feature;
 using Daily.Carp.Yarp;
-using KubeClient;
-using KubeClient.Models;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
-using System.Reactive.Linq;
 using static Daily.Carp.CarpApp;
-using Timer = System.Timers.Timer;
 
 namespace Daily.Carp.Provider.Kubernetes
 {
-    internal class KubernetesCarpConfigurationActivator : CarpConfigurationActivator
+    internal class KubernetesClusterIPCarpConfigurationActivator : CarpConfigurationActivator
     {
         private static readonly object lock_obj = new object();
 
-        public KubernetesCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
+        public KubernetesClusterIPCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
         {
             Initialize();
         }
@@ -39,16 +31,11 @@ namespace Daily.Carp.Provider.Kubernetes
         }
 
 
-        //为了防止其他状况 1分钟同步一次配置
+        //为了防止其他状况 10分钟同步一次配置
         private void TimingUpdate()
         {
-            Task.Run(() =>
-            {
-                var timer = new Timer();
-                timer.Interval = 60 * 1000;
-                timer.Elapsed += (sender, eventArgs) => { RefreshAll(); };
-                timer.Start();
-            });
+            var period = TimeSpan.FromMinutes(10);
+            _ = new Timer(state => RefreshAll(), null, period, period);
         }
     }
 }
