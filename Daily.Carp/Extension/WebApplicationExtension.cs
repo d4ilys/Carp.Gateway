@@ -1,5 +1,4 @@
-﻿using Daily.Carp.Internel;
-using Daily.LinkTracking;
+﻿using Daily.LinkTracking;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -13,15 +12,6 @@ namespace Daily.Carp.Extension
 {
     public static class WebApplicationExtension
     {
-        public static WebApplicationBuilder InjectCarp(this WebApplicationBuilder builder)
-        {
-            CarpApp.Configuration = builder.Configuration;
-
-            builder.Services.AddHttpContextAccessor();
-
-            return builder;
-        }
-
         /// <summary>
         /// 代理中间件
         /// </summary>
@@ -30,7 +20,6 @@ namespace Daily.Carp.Extension
         /// <returns></returns>
         public static WebApplication UseCarp(this WebApplication app, Action<CarpAppOptions>? options = null)
         {
-            //
             var optionsInternal = new CarpAppOptions
             {
                 App = app

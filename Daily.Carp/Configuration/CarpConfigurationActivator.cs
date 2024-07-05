@@ -15,29 +15,18 @@ namespace Daily.Carp.Configuration
         /// <summary>
         /// Yarp核心配置提供者
         /// </summary>
-        public CarpProxyConfigProvider YarpConfigProvider { get; set; }
-
-        protected CarpConfigurationActivator(CarpProxyConfigProvider provider)
-        {
-            YarpConfigProvider = provider;
-        }
+        private readonly CarpProxyConfigProvider _yarpConfigProvider  = CarpApp.GetRootService<CarpProxyConfigProvider>();
 
         /// <summary>
         /// 初始化
         /// </summary>
-        public abstract void Initialize();
-
-        /// <summary>
-        /// 刷新全部配置
-        /// </summary>
-        public abstract void RefreshAll();
-
+        public abstract Task Initialize();
 
         /// <summary>
         /// 局部刷新
         /// </summary>
         /// <param name="serviceName"></param>
-        public abstract void Refresh(string serviceName);
+        public abstract Task Refresh(string serviceName);
 
         /// <summary>
         /// 获取内部容器服务
@@ -49,27 +38,27 @@ namespace Daily.Carp.Configuration
         /// <summary>
         /// 按服务名称注入配置
         /// </summary>
-        public virtual void Inject(Func<string, IEnumerable<Service>> addressFunc)
+        public virtual async Task FullLoad(Func<string, Task<IList<Service>>> addressFunc)
         {
-            var result = YarpAdapter(addressFunc);
-            YarpConfigProvider.Refresh(result.Item2, result.Item1);
+            var result = await YarpAdapter(addressFunc);
+            _yarpConfigProvider.Refresh(result.Item2, result.Item1);
         }
 
         /// <summary>
         /// 按服务名称注入配置
         /// </summary>
-        public virtual void RefreshInject(Func<string, IEnumerable<Service>> addressFunc, string serviceName)
+        public virtual async Task LocalLoad(Func<string, Task<IList<Service>>> addressFunc, string serviceName)
         {
-            var result = RefreshYarpAdapter(addressFunc, serviceName);
-            YarpConfigProvider.Refresh(result.Item2, result.Item1);
+            var result = await RefreshYarpAdapter(addressFunc, serviceName);
+            _yarpConfigProvider.Refresh(result.Item2, result.Item1);
         }
 
         /// <summary>
         /// yarp配置适配
         /// </summary>
         /// <returns></returns>
-        private Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>> YarpAdapter(
-            Func<string, IEnumerable<Service>> addressFunc)
+        private async Task<Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>> YarpAdapter(
+            Func<string, Task<IList<Service>>> addressFunc)
         {
             var clusterConfigs = new List<ClusterConfig>();
 
@@ -85,7 +74,7 @@ namespace Daily.Carp.Configuration
                     var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
                     if (!service.DownstreamHostAndPorts.Any())
                     {
-                        var address = addressFunc.Invoke(service.ServiceName);
+                        var address = await addressFunc.Invoke(service.ServiceName);
                         foreach (var item in address)
                         {
                             var serviceString = item.ToString();
@@ -171,11 +160,11 @@ namespace Daily.Carp.Configuration
         /// 部分yarp配置适配
         /// </summary>
         /// <returns></returns>
-        private Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>> RefreshYarpAdapter(
-            Func<string, IEnumerable<Service>> addressFunc, string serviceName)
+        private async Task<Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>> RefreshYarpAdapter(
+            Func<string, Task<IList<Service>>> addressFunc, string serviceName)
         {
-            CarpApp.LogInfo($"{DateTime.Now},监听到:{serviceName}Pod修改，正在刷新配置...");
-            var proxyConfig = YarpConfigProvider.GetConfig();
+            CarpApp.LogInfo($"{DateTime.Now},Listening:{serviceName} Pod changed, refreshing the configuration..");
+            var proxyConfig = _yarpConfigProvider.GetConfig();
 
             var clusterConfigs = new List<ClusterConfig>(proxyConfig.Clusters);
 
@@ -200,7 +189,7 @@ namespace Daily.Carp.Configuration
                     var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
                     if (!service.DownstreamHostAndPorts.Any())
                     {
-                        var address = addressFunc.Invoke(service.ServiceName);
+                        var address =  await addressFunc.Invoke(service.ServiceName);
                         foreach (var item in address)
                         {
                             DestinationConfig destinationConfig = new DestinationConfig
@@ -276,7 +265,7 @@ namespace Daily.Carp.Configuration
                     continue;
                 }
 
-                CarpApp.LogInfo($"{DateTime.Now},{serviceName}，刷新成功：{JsonSerializer.Serialize(service)}.");
+                CarpApp.LogInfo($"{DateTime.Now},{serviceName}，Refresh successfully:{JsonSerializer.Serialize(service)}.");
             }
 
             return new Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>(clusterConfigs, routeConfigs);

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Daily.Carp.Feature;
-using Daily.Carp.Internel;
 using Daily.Carp.Yarp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -14,18 +13,12 @@ namespace Daily.Carp.Configuration
 {
     internal class NormalCarpConfigurationActivator : CarpConfigurationActivator
     {
-        public NormalCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
-        {
-            Initialize();
-            Watch();
-        }
-
-        public override void Initialize()
+        public override async Task Initialize()
         {
             var carpConfig = CarpApp.GetCarpConfig();
-            Inject(serviceName =>
+            await FullLoad(serviceName =>
             {
-                var services = new List<Service>();
+                IList<Service> services = new List<Service>();
                 var serviceRouteConfig = carpConfig.Routes.First(c => c.ServiceName == serviceName);
                 foreach (var downstreamHostAndPort in serviceRouteConfig.DownstreamHostAndPorts)
                 {
@@ -37,8 +30,9 @@ namespace Daily.Carp.Configuration
                     services.Add(service);
                 }
 
-                return services;
+                return Task.FromResult(services);
             });
+            Watch();
         }
 
         private void Watch()
@@ -49,7 +43,7 @@ namespace Daily.Carp.Configuration
 
                 try
                 {
-                    RefreshAll();
+                    Initialize();
                 }
                 catch
                 {
@@ -75,18 +69,14 @@ namespace Daily.Carp.Configuration
             return res;
         }
 
-        public override void RefreshAll()
-        {
-            Initialize();
-        }
 
-        public override void Refresh(string serviceName)
+        public override async Task Refresh(string serviceName)
         {
             var carpConfig = CarpApp.GetCarpConfig();
-            RefreshInject(serviceName =>
+            await LocalLoad(name =>
             {
-                var services = new List<Service>();
-                var serviceRouteConfig = carpConfig.Routes.First(c => c.ServiceName == serviceName);
+                IList<Service> services = new List<Service>();
+                var serviceRouteConfig = carpConfig.Routes.First(c => c.ServiceName == name);
                 foreach (var downstreamHostAndPort in serviceRouteConfig.DownstreamHostAndPorts)
                 {
                     var service = new Service();
@@ -94,10 +84,9 @@ namespace Daily.Carp.Configuration
                     service.Host = TryGetValueByArray(strings, 0);
                     service.Port = Convert.ToInt32(TryGetValueByArray(strings, 1, "0"));
                     service.Protocol = serviceRouteConfig.DownstreamScheme;
-                    services.Add(service);
                 }
 
-                return services;
+                return Task.FromResult(services);
             }, serviceName);
         }
     }

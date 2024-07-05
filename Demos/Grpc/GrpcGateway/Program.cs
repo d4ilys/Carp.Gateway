@@ -7,15 +7,15 @@ namespace GrpcGateway
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args).InjectCarp();
-
+            var builder = WebApplication.CreateBuilder(args);
+            
             // Add services to the container.
 
             builder.Services.AddControllers();
 
             builder.Services.AddCarp(options =>
             {
-                //À©Õ¹YARP ÊÊÅäGrpc
+                //ï¿½ï¿½Õ¹YARP ï¿½ï¿½ï¿½ï¿½Grpc
                 options.ReverseProxyBuilderInject = proxyBuilder =>
                 {
                     proxyBuilder.AddTransforms(context =>
@@ -36,7 +36,7 @@ namespace GrpcGateway
                         });
                     });
                 };
-            }).AddNormal();
+            });
 
             var app = builder.Build();
 

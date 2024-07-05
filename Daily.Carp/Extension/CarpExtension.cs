@@ -1,12 +1,9 @@
 ﻿using Daily.Carp.Configuration;
-using Daily.Carp.Internel;
+using Daily.Carp.Internal;
 using Daily.Carp.Yarp;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net;
 using Microsoft.Extensions.Hosting;
 using Yarp.ReverseProxy.Configuration;
-using Yarp.ReverseProxy.Transforms;
-using System.Linq;
 
 namespace Daily.Carp.Extension
 {
@@ -32,10 +29,12 @@ namespace Daily.Carp.Extension
                 };
             });
 
+            service.AddHttpContextAccessor();
+
             ICarpBuilder builder = new CarpBuilder();
             builder.Service = service;
             builder.ProxyConfigProvider = new CarpProxyConfigProvider();
-
+            service.AddSingleton(builder.ProxyConfigProvider);
             var reverseProxyBuilder = service.AddReverseProxy()
                 .LoadFormCustom(builder.ProxyConfigProvider);
 
@@ -49,25 +48,23 @@ namespace Daily.Carp.Extension
                 option.ReverseProxyBuilderInject?.Invoke(reverseProxyBuilder);
             }
 
+            builder.HostedServiceDelegate = async provider =>
+            {
+                var activator = new NormalCarpConfigurationActivator();
+                await activator.Initialize();
+            };
+
+            builder.Service.AddHostedService(serviceProvider => new CarpHostedService(serviceProvider, builder));
+
             return builder;
         }
 
         //通过K8S加载
-        internal static IReverseProxyBuilder LoadFormCustom(this IReverseProxyBuilder builder,
+        private static IReverseProxyBuilder LoadFormCustom(this IReverseProxyBuilder builder,
             IProxyConfigProvider configProvider)
         {
             builder.Services.AddSingleton<IProxyConfigProvider>(configProvider);
             return builder;
-        }
-
-        /// <summary>
-        /// 普通集群方式
-        /// </summary>
-        /// <param name="builder"></param>
-        public static void AddNormal(this ICarpBuilder builder)
-        {
-            builder.Service.AddHostedService(serviceProvider =>
-                new NormalGenericHostedService(serviceProvider.GetService<IHost>(), serviceProvider, builder));
         }
     }
 
@@ -75,7 +72,13 @@ namespace Daily.Carp.Extension
     public interface ICarpBuilder
     {
         public CarpProxyConfigProvider ProxyConfigProvider { get; set; }
+
         public IServiceCollection Service { get; set; }
+
+        /// <summary>
+        /// 服务启动后执行动作
+        /// </summary>
+        public Func<IServiceProvider, Task>? HostedServiceDelegate { get; set; }
     }
 
     public class CarpBuilder : ICarpBuilder
@@ -83,6 +86,8 @@ namespace Daily.Carp.Extension
         public CarpProxyConfigProvider ProxyConfigProvider { get; set; }
 
         public IServiceCollection Service { get; set; }
+
+        public Func<IServiceProvider, Task>? HostedServiceDelegate { get; set; }
     }
 
     public class CarpOptions

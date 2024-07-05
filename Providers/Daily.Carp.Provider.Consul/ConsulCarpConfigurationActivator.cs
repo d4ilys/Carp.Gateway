@@ -16,23 +16,20 @@ namespace Daily.Carp.Provider.Consul
 {
     internal class ConsulCarpConfigurationActivator : CarpConfigurationActivator
     {
-        private ConsulRegistryConfiguration _config;
         private static readonly object lock_obj = new object();
 
-        public ConsulCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
+        public sealed override async Task Initialize()
         {
-            Initialize();
-        }
-
-        public sealed override void Initialize()
-        {
-            RefreshAll();
+            await RefreshAll();
             TimingUpdate();
         }
 
-        public override void RefreshAll() => Inject(GetServices);
+        public async Task RefreshAll()
+        {
+            await FullLoad(GetServices);
+        }
 
-        public override void Refresh(string serviceName)
+        public override Task Refresh(string serviceName)
         {
             throw new NotImplementedException();
         }
@@ -49,11 +46,11 @@ namespace Daily.Carp.Provider.Consul
             });
         }
 
-        private List<Service> GetServices(string serviceName)
+        private Task<IList<Service>> GetServices(string serviceName)
         {
             lock (lock_obj)
             {
-                var services = new List<Service>();
+                IList<Service> services = new List<Service>();
                 var client = GetService<IConsulClientFactory>()?.Get();
                 var queryResult = client?.Health.Service(serviceName, string.Empty, true).ConfigureAwait(true)
                     .GetAwaiter().GetResult();
@@ -82,17 +79,17 @@ namespace Daily.Carp.Provider.Consul
                     }
                 }
 
-                return services;
+                return Task.FromResult(services);
             }
         }
 
-        private Service BuildService(ServiceEntry serviceEntry, Node serviceNode)
+        private Service BuildService(ServiceEntry serviceEntry, Node? serviceNode)
         {
-            var services = new Service();
-
-            services.Host = serviceNode == null ? serviceEntry.Service.Address : serviceNode.Name;
-
-            services.Port = serviceEntry.Service.Port;
+            var services = new Service
+            {
+                Host = serviceNode == null ? serviceEntry.Service.Address : serviceNode.Name,
+                Port = serviceEntry.Service.Port
+            };
 
             return services;
         }

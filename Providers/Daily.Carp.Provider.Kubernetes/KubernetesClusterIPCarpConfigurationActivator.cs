@@ -4,38 +4,30 @@ using static Daily.Carp.CarpApp;
 
 namespace Daily.Carp.Provider.Kubernetes
 {
-    internal class KubernetesClusterIPCarpConfigurationActivator : CarpConfigurationActivator
+    internal class KubernetesClusterIpCarpConfigurationActivator : CarpConfigurationActivator
     {
-        private static readonly object lock_obj = new object();
-
-        public KubernetesClusterIPCarpConfigurationActivator(CarpProxyConfigProvider provider) : base(provider)
+        public sealed override async Task Initialize()
         {
-            Initialize();
-        }
-
-        public sealed override void Initialize()
-        {
-            RefreshAll();
+            await Refresh(string.Empty);
             TimingUpdate();
         }
 
-        public override void RefreshAll()
+        public override async Task Refresh(string serviceName)
         {
-            Inject(KubernetesGainer.GetServiceInternalPointAddress);
+            if (string.IsNullOrWhiteSpace(serviceName))
+                await FullLoad(async s => await KubernetesGainer.GetServiceInternalPointAddress(s));
+            else
+                await LocalLoad(async s => await KubernetesGainer.GetServiceInternalPointAddress(serviceName),
+                    serviceName);
+
             LogInfo($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Configuration refresh.");
         }
-
-        public override void Refresh(string serviceName)
-        {
-            RefreshInject(s => KubernetesGainer.GetServiceInternalPointAddress(serviceName), serviceName);
-        }
-
 
         //为了防止其他状况 10分钟同步一次配置
         private void TimingUpdate()
         {
             var period = TimeSpan.FromMinutes(10);
-            _ = new Timer(state => RefreshAll(), null, period, period);
+            _ = new Timer(async state => { await Refresh(string.Empty); }, null, period, period);
         }
     }
 }

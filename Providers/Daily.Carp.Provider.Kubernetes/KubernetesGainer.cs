@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Daily.Carp.Feature;
 using KubeClient;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using static Daily.Carp.CarpApp;
 
@@ -20,17 +21,15 @@ namespace Daily.Carp.Provider.Kubernetes
         /// </summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
-        public static List<Service> GetPodEndPointAddress(string serviceName)
+        public static async Task<IList<Service>> GetPodEndPointAddress(string serviceName)
         {
             var services = new List<Service>();
             try
             {
+                var client = GetClient();
                 var carpConfig = GetCarpConfig();
                 var namespaces = carpConfig.Kubernetes.Namespace;
-                var client = GetRootService<IKubeApiClient>();
-
-                var pods = client.PodsV1().List(kubeNamespace: namespaces, labelSelector: $"app={serviceName}")
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                var pods = await client.PodsV1().List(kubeNamespace: namespaces, labelSelector: $"app={serviceName}");
                 var carpRouteConfig = GetCarpConfig().Routes.First(c => c.ServiceName == serviceName);
                 foreach (var podV1 in pods)
                 {
@@ -70,8 +69,12 @@ namespace Daily.Carp.Provider.Kubernetes
                 LogError($"Endpoints error {Environment.NewLine}Message:{e}");
             }
 
-
             return services;
+        }
+
+        private static KubeApiClient GetClient()
+        {
+            return KubeApiClient.Create(KubeClientOptions.FromPodServiceAccount());
         }
 
         /// <summary>
@@ -79,17 +82,17 @@ namespace Daily.Carp.Provider.Kubernetes
         /// </summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
-        public static List<Service> GetServiceInternalPointAddress(string serviceName)
+        public static async Task<IList<Service>> GetServiceInternalPointAddress(string serviceName)
         {
             var services = new List<Service>();
+
+            var client = GetClient();
             try
             {
                 var carpConfig = GetCarpConfig();
                 var kubeNamespace = carpConfig.Kubernetes.Namespace;
-                var client = GetRootService<IKubeApiClient>();
                 var carpRouteConfig = GetCarpConfig().Routes.First(c => c.ServiceName == serviceName);
-                var kubeService = client.ServicesV1().Get(serviceName, kubeNamespace).ConfigureAwait(false).GetAwaiter()
-                    .GetResult();
+                var kubeService = await client.ServicesV1().Get(serviceName, kubeNamespace);
                 var host = kubeService.Spec.ClusterIP;
                 var port = kubeService.Spec.Ports[0].Port;
                 services.Add(new Service()
@@ -101,7 +104,8 @@ namespace Daily.Carp.Provider.Kubernetes
 
                 carpRouteConfig.DownstreamHostAndPorts.AddRange(services.Select(s => s.ToString()));
 
-                LogInfo($"{serviceName} - ClusterIP initialize successfully ：{JsonConvert.SerializeObject(services)}.");
+                LogInfo(
+                    $"{serviceName} - ClusterIP initialize successfully ：{JsonConvert.SerializeObject(services)}.");
             }
             catch (Exception e)
             {

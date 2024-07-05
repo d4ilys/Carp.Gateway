@@ -19,8 +19,11 @@ namespace Daily.Carp.Extension
 
             builder.Service.AddSingleton<IConsulClientFactory>(new ConsulClientFactory(config));
 
-            builder.Service.AddHostedService(serviceProvider =>
-                new ConsulGenericHostedService(serviceProvider.GetService<IHost>(), serviceProvider, builder));
+            builder.HostedServiceDelegate = async provider =>
+            {
+                var activator = new ConsulCarpConfigurationActivator();
+                await activator.Initialize();
+            };
         }
     }
 }

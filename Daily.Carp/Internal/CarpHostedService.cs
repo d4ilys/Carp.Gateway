@@ -1,26 +1,27 @@
-﻿using Daily.Carp.Extension;
+﻿using Daily.Carp.Configuration;
+using Daily.Carp.Extension;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Daily.Carp.Provider.Kubernetes
+namespace Daily.Carp.Internal
 {
     /// <summary>
-    /// 主机启动时构建KubernetesGenericHostedService
+    /// CarpHostedService
     /// </summary>
-    public class KubernetesClusterHostedService : IHostedService
+    public class CarpHostedService : IHostedService
     {
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="host"></param>
-        /// <param name="carpBuild"></param>
-        /// <param name="type"></param>
-        public KubernetesClusterHostedService(IHost? host, IServiceProvider serviceProvider, ICarpBuilder carpBuilder,KubeDiscoveryType type)
+        /// <param name="serviceProvider"></param>
+        /// <param name="carpBuilder"></param>
+        public CarpHostedService(IServiceProvider serviceProvider, ICarpBuilder carpBuilder)
         {
+            // 存储根服务
             CarpApp.ServiceProvider = serviceProvider;
-            if (type == KubeDiscoveryType.ClusterIP)
-                _ = new KubernetesClusterIPCarpConfigurationActivator(carpBuilder.ProxyConfigProvider);
-            else
-                _ = new KubernetesWatchPodCarpConfigurationActivator(carpBuilder.ProxyConfigProvider);
+            CarpApp.Configuration = serviceProvider.GetService<IConfiguration>();
+            carpBuilder.HostedServiceDelegate?.Invoke(serviceProvider);
         }
 
         /// <summary>

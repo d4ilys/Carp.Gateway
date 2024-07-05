@@ -1,12 +1,11 @@
 using Daily.Carp.Extension;
 using Daily.Carp.Provider.Kubernetes;
-using Newtonsoft.Json;
 
-var builder = WebApplication.CreateBuilder(args).InjectCarp();
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
+builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.ClusterIP);
 
 builder.Services.AddControllers();
 

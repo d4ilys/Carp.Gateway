@@ -1,7 +1,7 @@
 using Daily.Carp.Extension;
 using Winton.Extensions.Configuration.Consul;
 
-var builder = WebApplication.CreateBuilder(args).InjectCarp();
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 

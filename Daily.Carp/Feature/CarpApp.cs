@@ -13,7 +13,7 @@ namespace Daily.Carp
         /// <summary>
         /// 配置对象
         /// </summary>
-        public static IConfiguration Configuration { get; internal set; }
+        public static IConfiguration? Configuration { get; internal set; }
 
         /// <summary>
         /// ASP.NET Core中的ServiceProvider
@@ -23,10 +23,21 @@ namespace Daily.Carp
         /// <summary>
         /// ASP.NET Core中容器实例获取
         /// </summary>
-        public static T GetRootService<T>()
+        public static T? GetRootService<T>()
         {
             return ServiceProvider.GetService<T>();
         }
+
+
+        /// <summary>
+        /// ASP.NET Core中容器实例获取
+        /// </summary>
+        public static async Task GetScopeService<T>(Func<T?, Task> func)
+        {
+            using var serviceScope = ServiceProvider.CreateScope();
+            await func.Invoke(serviceScope.ServiceProvider.GetService<T>());
+        }
+
 
         public static CarpConfig? CarpConfig { get; set; } = null;
 
@@ -114,8 +125,5 @@ namespace Daily.Carp
         {
             return $"RouteId-{serviceName}";
         }
-
-
-
     }
 }

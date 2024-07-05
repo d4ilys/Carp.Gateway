@@ -13,7 +13,7 @@ Carp.Gateway 是.NET下生态的网关 基于微软的Yarp实现
 
 #### Quick Start 
 
-* 创建 .NET 6.0 WebAPI
+* 创建 .NET 8.0 WebAPI
 
 * NuGet 安装Carp.Gateway
 

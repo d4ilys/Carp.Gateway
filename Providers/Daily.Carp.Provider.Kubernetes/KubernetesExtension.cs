@@ -1,10 +1,12 @@
-﻿using Daily.Carp.Provider.Kubernetes;
+﻿using Daily.Carp.Configuration;
+using Daily.Carp.Provider.Kubernetes;
 using KubeClient;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Daily.Carp.Extension
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class KubernetesExtension
     {
         /// <summary>
@@ -15,10 +17,20 @@ namespace Daily.Carp.Extension
         public static void AddKubernetes(this ICarpBuilder builder,
             KubeDiscoveryType type = KubeDiscoveryType.ClusterIP)
         {
-            builder.Service.AddKubeClient(true);
-            builder.Service.AddHostedService(serviceProvider =>
-                new KubernetesClusterHostedService(serviceProvider.GetService<IHost>(), serviceProvider, builder,
-                    type));
+            builder.Service.AddKubeClient();
+
+
+            builder.HostedServiceDelegate = async provider =>
+            {
+                CarpConfigurationActivator activator;
+
+                if (type == KubeDiscoveryType.ClusterIP)
+                    activator = new KubernetesClusterIpCarpConfigurationActivator();
+                else
+                    activator = new KubernetesWatchPodCarpConfigurationActivator();
+
+                await activator.Initialize();
+            };
         }
     }
 }

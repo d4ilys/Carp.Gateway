@@ -7,7 +7,7 @@ namespace WebSocket.Demo01
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args).InjectCarp(); //◊¢»Î≈‰÷√;
+            var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
@@ -17,7 +17,7 @@ namespace WebSocket.Demo01
 
             builder.Services.AddSwaggerGen();
             
-            builder.Services.AddCarp().AddNormal();
+            builder.Services.AddCarp();
 
             var app = builder.Build();
 
