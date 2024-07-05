@@ -2,8 +2,7 @@
 
 🍧 [**前言**](#前言)  <br />
 ✨ [Quick Start](#quick-start) <br />
-☁️ [集成Kubernetes](#kubernetes) <br />
-🍢 [集成Consul](#consul) <br />
+☁️ [集成Kubernetes](#kubernetes) <br />☁️ [Kubernetes无感升级](#Kubernetes实现用户无感升级) <br />🍢 [集成Consul](#consul) <br />
 ⚓ [普通代理模式](#普通代理模式) <br />🥨 [错误重试](#错误重试) <br />🎉 [GRPC](#GRPC) <br />👍 [WebSocket](#WebSocket) <br />🧊 [集成Swagger](#集成swagger) <br />
 
 #### **前言**
@@ -98,7 +97,6 @@ using Daily.Carp.Extension;
 var builder = WebApplication.CreateBuilder(args).InjectCarp();
 
 // Add services to the container.
-
 builder.Services.AddCarp().AddKubernetes();
 
 builder.Services.AddControllers();
@@ -154,6 +152,28 @@ app.MapControllers();
 
 app.Run("http://*:6005");
 ~~~
+
+> Kubernetes服务发现类型说明
+
+**在Carp中Kubernetes服务发现支持两种方式**
+
+1.ClusterIP(默认方式)
+
+ClusterIP提供了一种在集群内部进行服务发现和负载均衡的机制。
+
+~~~c#
+builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.ClusterIP);
+~~~
+
+2.Endpoint
+
+Endpoint = PodId + ContainerPort，Carp会将一个Service中的所有的Endpoint交给Yarp进行管理，当Pod发生变化时（例如滚动更新时），Carp会实时更新Yarp配置
+
+~~~c#
+builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
+~~~
+
+> 配置文件
 
 ~~~json
  "Carp": {
@@ -340,6 +360,41 @@ subjects:
   namespace: dev
 ~~~
 
+#### Kubernetes实现用户无感升级
+
+在K8S中我们在部署更新服务的时候，旧的Pod会被Kill，新的Pod会生成并逐步替换。但是在这个工作过程中旧的Pod在被Kill时可能还会有一些流量会被调度到该Pod，会导致一些请求出现错误 一般为502，为了解决这个问题，我们引入两个动作。
+
+> 就绪探针
+
+Pod在启动完毕后，我们为了确保容器正确启动并可以接收请求，会暴漏一个api，该api接收K8S的心跳探测，如果成功并状态码返回200 则代表该Pod已经可以处理流量
+
+~~~yaml
+readinessProbe:
+  httpGet:
+    path: /api/health/index
+    port: 5000
+    scheme: HTTP
+  initialDelaySeconds: 15
+  timeoutSeconds: 5
+  periodSeconds: 30
+  successThreshold: 1
+  failureThreshold: 3
+~~~
+
+> preStop钩子
+
+容器在被下达Kill的命名后，仍然可以处理一段时间的请求，这个是至关重要的，解决了容器在退出的过程中的一瞬间流量被命中后无法处理的情况
+
+~~~yaml
+lifecycle:
+  preStop:
+    exec:
+      command:
+        - /bin/sh
+        - '-c'
+        - sleep 10
+~~~
+
 #### Consul
 
 ~~~c#
@@ -471,29 +526,6 @@ app.Run("http://*:6005");
   }
 ~~~
 
-#### 错误重试
-
-> 状态码大于400才会触发重试
-
-~~~json
-{
-  "Carp": {
-    "Routes": [
-      {
-        "Descriptions": "简单的例子",
-        "ServiceName": "Basics",
-        "PathTemplate": "/Basics/{**catch-all}", 
-        "TransmitPathTemplate": "{**catch-all}", 
-        "DownstreamHostAndPorts": [ "https://jd.com", "https://xxx.aasd.casd", "https://xxx.aasasd.casd", "https://xxx.aassssasd.casd" ],
-        "RetryPolicy": {    //重试策略
-          "RetryCount": 2,  //默认3次，重试次数
-          "RetryOnStatusCodes": [ "5xx","404" ]  //可以不配置，默认5xx
-        }
-      }  
-    ] 
-  }
-}
-~~~
 
 > 根据域名转发
 
@@ -571,6 +603,36 @@ app.Run("http://*:6005");
   "AllowedHosts": "*"
 }
 ~~~
+
+#### 错误重试
+
+> 状态码大于400才会触发重试
+
+~~~json
+{
+  "Carp": {
+    "Routes": [
+      {
+        "Descriptions": "简单的例子",
+        "ServiceName": "Basics",
+        "PathTemplate": "/Basics/{**catch-all}", 
+        "TransmitPathTemplate": "{**catch-all}", 
+        "DownstreamHostAndPorts": [ "https://jd.com", "https://xxx.aasd.casd", "https://xxx.aasasd.casd", "https://xxx.aassssasd.casd" ],
+        "RetryPolicy": {    //重试策略
+          "RetryCount": 2,  //默认3次，重试次数
+          "RetryOnStatusCodes": [ "5xx","404" ]  //可以不配置，默认5xx
+        }
+      }  
+    ] 
+  }
+}
+~~~
+
+#### 限流
+
+> 在ASP.NET Core中已经内置了限流中间件
+
+[ASP.NET Core 中的速率限制中间件 | Microsoft Learn](https://learn.microsoft.com/zh-cn/aspnet/core/performance/rate-limit?view=aspnetcore-8.0)
 
 #### 集成Swagger
 
