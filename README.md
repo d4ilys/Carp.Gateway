@@ -59,10 +59,6 @@ app.Run();
 
 #### Kubernetes
 
-在Kubernetes 中需要再ServiceAccount 中增加 pods、service、watch等权限，Carp才能实时监控Service的事件信息，**下方有完整的yaml实例**
-
-![1d7b5ed2623bf5349b8e148947bec5d](https://user-images.githubusercontent.com/54463101/228444662-a3b03a25-2a62-40e2-a068-a711de124535.png)
-
 > 适配Kubernetes
 
 ~~~shell
@@ -148,7 +144,13 @@ builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
   }
 ~~~
 
-> Gateway部署yaml文件参考
+> Gateway部署
+
+在部署Gateway项目时，需要创建Role并增加读取service和pod的权限，然后创建ServiceAccount，将Role绑定给 ServiceAccount
+
+在Deployment中指定 serviceAccount、serviceAccountName
+
+yaml文件参考
 
 ~~~yaml
 kind: Deployment
