@@ -60,9 +60,8 @@ namespace Daily.Carp.Provider.Kubernetes
                         LogError($"{serviceName} - Endpoint initialize error {Environment.NewLine}Message:{e}.");
                     }
 
-                    LogInfo(
-                        $"{serviceName} - Endpoint initialize successfully ：{JsonConvert.SerializeObject(services)}.");
                 }
+
             }
             catch (Exception e)
             {
@@ -74,7 +73,7 @@ namespace Daily.Carp.Provider.Kubernetes
 
         private static KubeApiClient GetClient()
         {
-            return KubeApiClient.Create(KubeClientOptions.FromPodServiceAccount());
+            return GetRootService<KubeApiClient>()!;
         }
 
         /// <summary>
@@ -104,8 +103,6 @@ namespace Daily.Carp.Provider.Kubernetes
 
                 carpRouteConfig.DownstreamHostAndPorts.AddRange(services.Select(s => s.ToString()));
 
-                LogInfo(
-                    $"{serviceName} - ClusterIP initialize successfully ：{JsonConvert.SerializeObject(services)}.");
             }
             catch (Exception e)
             {

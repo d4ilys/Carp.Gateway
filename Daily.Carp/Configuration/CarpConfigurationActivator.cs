@@ -15,7 +15,7 @@ namespace Daily.Carp.Configuration
         /// <summary>
         /// Yarp核心配置提供者
         /// </summary>
-        private readonly CarpProxyConfigProvider _yarpConfigProvider  = CarpApp.GetRootService<CarpProxyConfigProvider>();
+        private readonly CarpProxyConfigProvider _yarpConfigProvider  = CarpApp.GetRootService<CarpProxyConfigProvider>()!;
 
         /// <summary>
         /// 初始化
@@ -27,13 +27,6 @@ namespace Daily.Carp.Configuration
         /// </summary>
         /// <param name="serviceName"></param>
         public abstract Task Refresh(string serviceName);
-
-        /// <summary>
-        /// 获取内部容器服务
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T GetService<T>() => CarpApp.GetRootService<T>();
 
         /// <summary>
         /// 按服务名称注入配置
@@ -151,7 +144,12 @@ namespace Daily.Carp.Configuration
                 {
                     continue;
                 }
+      
+                CarpApp.LogInfo(
+                    $"{DateTime.Now} {service.ServiceName} - Endpoint refresh to complete.");
             }
+
+    
 
             return new Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>(clusterConfigs, routeConfigs);
         }
@@ -163,7 +161,6 @@ namespace Daily.Carp.Configuration
         private async Task<Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>> RefreshYarpAdapter(
             Func<string, Task<IList<Service>>> addressFunc, string serviceName)
         {
-            CarpApp.LogInfo($"{DateTime.Now},Listening:{serviceName} Pod changed, refreshing the configuration..");
             var proxyConfig = _yarpConfigProvider.GetConfig();
 
             var clusterConfigs = new List<ClusterConfig>(proxyConfig.Clusters);
@@ -190,6 +187,7 @@ namespace Daily.Carp.Configuration
                     if (!service.DownstreamHostAndPorts.Any())
                     {
                         var address =  await addressFunc.Invoke(service.ServiceName);
+
                         foreach (var item in address)
                         {
                             DestinationConfig destinationConfig = new DestinationConfig
@@ -265,7 +263,8 @@ namespace Daily.Carp.Configuration
                     continue;
                 }
 
-                CarpApp.LogInfo($"{DateTime.Now},{serviceName}，Refresh successfully:{JsonSerializer.Serialize(service)}.");
+                CarpApp.LogInfo(
+                    $"{DateTime.Now} {service.ServiceName} - Endpoint refresh to complete.");
             }
 
             return new Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>(clusterConfigs, routeConfigs);

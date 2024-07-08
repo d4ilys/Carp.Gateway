@@ -51,7 +51,7 @@ namespace Daily.Carp.Provider.Consul
             lock (lock_obj)
             {
                 IList<Service> services = new List<Service>();
-                var client = GetService<IConsulClientFactory>()?.Get();
+                var client = CarpApp.GetRootService<IConsulClientFactory>()?.Get();
                 var queryResult = client?.Health.Service(serviceName, string.Empty, true).ConfigureAwait(true)
                     .GetAwaiter().GetResult();
                 foreach (var serviceEntry in queryResult.Response)

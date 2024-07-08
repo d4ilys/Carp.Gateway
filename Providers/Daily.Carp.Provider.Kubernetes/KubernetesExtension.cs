@@ -1,6 +1,7 @@
 ﻿using Daily.Carp.Configuration;
 using Daily.Carp.Provider.Kubernetes;
 using KubeClient;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Daily.Carp.Extension
 {
@@ -14,11 +15,17 @@ namespace Daily.Carp.Extension
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="type">服务发现类型</param>
+        /// <param name="options">KubeClient自定义配置</param>
         public static void AddKubernetes(this ICarpBuilder builder,
-            KubeDiscoveryType type = KubeDiscoveryType.ClusterIP)
+            KubeDiscoveryType type = KubeDiscoveryType.ClusterIP, KubeClientOptions? options = null)
         {
-            builder.Service.AddKubeClient();
+            var client = options == null
+                ? KubeApiClient.CreateFromPodServiceAccount()
+                : KubeApiClient.Create(options);
 
+            builder.Service.AddSingleton(client);
+
+            builder.Service.AddMemoryCache();
 
             builder.HostedServiceDelegate = async provider =>
             {

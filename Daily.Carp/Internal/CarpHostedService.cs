@@ -1,7 +1,4 @@
-﻿using Daily.Carp.Configuration;
-using Daily.Carp.Extension;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Daily.Carp.Extension;
 using Microsoft.Extensions.Hosting;
 
 namespace Daily.Carp.Internal
@@ -14,14 +11,11 @@ namespace Daily.Carp.Internal
         /// <summary>
         /// 构造函数
         /// </summary>
-        /// <param name="serviceProvider"></param>
+        /// <param name="serviceScopeProvider"></param>
         /// <param name="carpBuilder"></param>
-        public CarpHostedService(IServiceProvider serviceProvider, ICarpBuilder carpBuilder)
+        public CarpHostedService(IServiceProvider serviceScopeProvider, ICarpBuilder carpBuilder)
         {
-            // 存储根服务
-            CarpApp.ServiceProvider = serviceProvider;
-            CarpApp.Configuration = serviceProvider.GetService<IConfiguration>();
-            carpBuilder.HostedServiceDelegate?.Invoke(serviceProvider);
+            carpBuilder.HostedServiceDelegate?.Invoke(serviceScopeProvider);
         }
 
         /// <summary>

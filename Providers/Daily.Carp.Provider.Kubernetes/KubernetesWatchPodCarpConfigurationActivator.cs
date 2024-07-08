@@ -1,19 +1,26 @@
-﻿using System.Reactive.Linq;
+﻿using System.Collections.Concurrent;
 using Daily.Carp.Configuration;
-using Daily.Carp.Yarp;
 using KubeClient;
-using Microsoft.Extensions.DependencyInjection;
+using System.Reactive.Linq;
+using Microsoft.Extensions.Caching.Memory;
 using static Daily.Carp.CarpApp;
+using Timer = System.Timers.Timer;
 
 namespace Daily.Carp.Provider.Kubernetes
 {
     internal class KubernetesWatchPodCarpConfigurationActivator : CarpConfigurationActivator
     {
-        public sealed override async Task Initialize()
+        private static readonly IMemoryCache Cache = GetRootService<IMemoryCache>()!;
+
+        private const string RetryWatchLimit = "RetryWatchLimit";
+
+        private static readonly Limiter Limiter = new Limiter();
+
+        public override async Task Initialize()
         {
-            await Refresh(string.Empty);
-            await Watch();
             TimingUpdate();
+            await Refresh(string.Empty);
+            _ = Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(task => Watch());
         }
 
         public override async Task Refresh(string serviceName)
@@ -22,43 +29,86 @@ namespace Daily.Carp.Provider.Kubernetes
                 await FullLoad(async s => await KubernetesGainer.GetPodEndPointAddress(s));
             else
                 await LocalLoad(async s => await KubernetesGainer.GetPodEndPointAddress(serviceName), serviceName);
-
-            LogInfo($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Configuration refresh.");
         }
 
-        private Task Watch()
+        private void Watch()
         {
-            var kubeApiClient = KubeApiClient.Create(KubeClientOptions.FromPodServiceAccount());
             try
             {
+                var kubeApiClient = GetRootService<KubeApiClient>()!;
+
                 var carpConfig = GetCarpConfig();
+
                 var kubeNamespace = carpConfig.Kubernetes.Namespace;
+
                 //监听Service变化，实时更新Yarp配置
                 LogInfo($"Prepare to listen to namespace {kubeNamespace}.");
 
-                var eventStream = kubeApiClient.PodsV1()
-                    .WatchAll(kubeNamespace: kubeNamespace);
-                eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(async subsequentEvent =>
-                    {
-                        try
+                void InternalWatch()
+                {
+                    var eventStream = kubeApiClient.PodsV1()
+                        .WatchAll(kubeNamespace: kubeNamespace);
+                    eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(subsequentEvent =>
                         {
                             var serviceName = subsequentEvent.Metadata.Labels["app"];
-                            await Refresh(serviceName);
-                        }
-                        catch (Exception e)
+                            if (CarpApp.CarpConfig!.Routes.All(c => c.ServiceName != serviceName))
+                            {
+                                return;
+                            }
+
+                            var statuses = subsequentEvent.Status;
+                            if (statuses.ContainerStatuses.Any(c => c.Ready))
+                            {
+                                if (statuses.Conditions.All(c => c.Status == "True"))
+                                {
+                                    try
+                                    {
+                                        //No Terminating
+                                        if (!subsequentEvent.Metadata.DeletionTimestamp.HasValue)
+                                        {
+                                            _ = Refresh(serviceName);
+
+                                            LogInfo(
+                                                $"{serviceName} - Pod {subsequentEvent.Metadata.Name} is ready, refresh configuration.");
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        LogError($"Listening to pod fail.{Environment.NewLine}Message: {e.Message}");
+                                    }
+                                }
+                            }
+                        },
+                        error => LogError($"Listening to pod fail.{Environment.NewLine}Message: {error.Message}"),
+                        () =>
                         {
-                            LogError($"Listening to pod fail.{Environment.NewLine}Message: {e.Message}");
-                        }
-                    },
-                    error => LogError($"Listening to pod fail.{Environment.NewLine}Message: {error.Message}"),
-                    () => { LogInfo("Listening to pod completed."); });
+                            var limiter = Cache.GetOrCreate(RetryWatchLimit, entry =>
+                            {
+                                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                                Limiter.Count = 0;
+                                return Limiter;
+                            });
+
+                            limiter!.Count++;
+
+                            if (limiter.Count < 10)
+                            {
+                                LogInfo($"{DateTime.Now} Listening to pod completed.");
+                                InternalWatch();
+                            }
+                            else
+                            {
+                                LogError($"Listening to pod fail.{Environment.NewLine}Message: Retry limit exceeded.");
+                            }
+                        });
+                }
+
+                InternalWatch();
             }
             catch (Exception e)
             {
                 LogError($"Watch error {Environment.NewLine}Message:{e}");
             }
-
-            return Task.CompletedTask;
         }
 
 
@@ -66,7 +116,19 @@ namespace Daily.Carp.Provider.Kubernetes
         private void TimingUpdate()
         {
             var period = TimeSpan.FromMinutes(10);
-            _ = new Timer(async state => await Refresh(string.Empty), null, period, period);
+            Timer timer = new Timer();
+            timer.Interval = period.TotalMilliseconds;
+            timer.Elapsed += (sender, args) =>
+            {
+                LogInfo($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} TimingUpdateCallback refresh.");
+                _ = Refresh(string.Empty);
+            };
+            timer.Start();
         }
+    }
+
+    internal class Limiter
+    {
+        internal int Count { get; set; }
     }
 }

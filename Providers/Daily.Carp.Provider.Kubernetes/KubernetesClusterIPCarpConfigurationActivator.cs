@@ -8,8 +8,8 @@ namespace Daily.Carp.Provider.Kubernetes
     {
         public sealed override async Task Initialize()
         {
-            await Refresh(string.Empty);
             TimingUpdate();
+            await Refresh(string.Empty);
         }
 
         public override async Task Refresh(string serviceName)
@@ -26,8 +26,20 @@ namespace Daily.Carp.Provider.Kubernetes
         //为了防止其他状况 10分钟同步一次配置
         private void TimingUpdate()
         {
-            var period = TimeSpan.FromMinutes(10);
-            _ = new Timer(async state => { await Refresh(string.Empty); }, null, period, period);
+            var period = TimeSpan.FromMinutes(1);
+            System.Timers.Timer timer = new System.Timers.Timer();
+            timer.Interval = period.TotalMilliseconds;
+            timer.Elapsed += (sender, args) =>
+            {
+                LogInfo($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} TimingUpdateCallback refresh.");
+                _ = Refresh(string.Empty);
+            };
+            timer.Start();
+        }
+
+        private async void TimingUpdateCallback(object? state)
+        {
+            await Refresh(string.Empty);
         }
     }
 }

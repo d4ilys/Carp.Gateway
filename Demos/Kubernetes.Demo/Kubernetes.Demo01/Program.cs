@@ -1,11 +1,18 @@
 using Daily.Carp.Extension;
 using Daily.Carp.Provider.Kubernetes;
+using KubeClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.ClusterIP);
+var path = Path.Combine(AppContext.BaseDirectory, "admin.conf");
+// 通过配置文件
+KubeClientOptions clientOptions = K8sConfig.Load(path).ToKubeClientOptions(
+    defaultKubeNamespace: "default"
+);
+
+builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint, clientOptions);
 
 builder.Services.AddControllers();
 

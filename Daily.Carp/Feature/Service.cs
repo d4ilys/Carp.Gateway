@@ -9,7 +9,7 @@ namespace Daily.Carp.Feature
     public class Service
     {
 
-        public string Host { get; set; }
+        public string? Host { get; set; }
 
         public int Port { get; set; }
 

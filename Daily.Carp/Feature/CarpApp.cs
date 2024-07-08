@@ -8,36 +8,43 @@ using Microsoft.Extensions.Logging;
 
 namespace Daily.Carp
 {
+    /// <summary>
+    /// CarpApp
+    /// </summary>
     public partial class CarpApp
     {
         /// <summary>
         /// 配置对象
         /// </summary>
-        public static IConfiguration? Configuration { get; internal set; }
+        public static IConfiguration Configuration { get; internal set; }
 
         /// <summary>
         /// ASP.NET Core中的ServiceProvider
         /// </summary>
-        public static IServiceProvider ServiceProvider { get; set; }
+        private static IServiceProvider? _serviceScopeProvider;
 
         /// <summary>
-        /// ASP.NET Core中容器实例获取
+        /// ASP.NET Core中的ServiceProvider
+        /// </summary>
+        private static IServiceProvider? _serviceRootProvider;
+
+        /// <summary>
+        /// 设置Root IServiceProvider
+        /// </summary>
+        /// <param name="serviceScopeProvider"></param>
+        public static void SetRootServiceProvider(IServiceProvider serviceScopeProvider)
+        {
+            _serviceRootProvider = serviceScopeProvider;
+        }
+
+        /// <summary>
+        /// Root容器实例获取
         /// </summary>
         public static T? GetRootService<T>()
         {
-            return ServiceProvider.GetService<T>();
+            if (_serviceRootProvider == null) throw new Exception("ServiceProvider is null");
+            return _serviceRootProvider.GetService<T>();
         }
-
-
-        /// <summary>
-        /// ASP.NET Core中容器实例获取
-        /// </summary>
-        public static async Task GetScopeService<T>(Func<T?, Task> func)
-        {
-            using var serviceScope = ServiceProvider.CreateScope();
-            await func.Invoke(serviceScope.ServiceProvider.GetService<T>());
-        }
-
 
         public static CarpConfig? CarpConfig { get; set; } = null;
 
@@ -65,9 +72,9 @@ namespace Daily.Carp
         /// <param name="info"></param>
         public static void LogInfo(string info)
         {
-            if (CarpApp.CarpConfig != null && CarpApp.CarpConfig.ShowLogInformation)
+            if (CarpConfig != null && CarpApp.CarpConfig.ShowLogInformation)
             {
-                var log = CarpApp.GetRootService<ILogger<CarpApp>>();
+                var log = GetRootService<ILogger<CarpApp>>();
                 if (log != null)
                 {
                     log?.LogInformation($"Carp: {info}");
@@ -85,7 +92,7 @@ namespace Daily.Carp
         /// <param name="info"></param>
         public static void LogError(string info)
         {
-            var log = CarpApp.GetRootService<ILogger<CarpApp>>();
+            var log = GetRootService<ILogger<CarpApp>>();
             if (log != null)
             {
                 log?.LogError($"Carp: {info}");

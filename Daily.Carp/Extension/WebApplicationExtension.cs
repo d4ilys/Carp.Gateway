@@ -10,6 +10,9 @@ using Microsoft.Extensions.Primitives;
 
 namespace Daily.Carp.Extension
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class WebApplicationExtension
     {
         /// <summary>
@@ -24,7 +27,9 @@ namespace Daily.Carp.Extension
             {
                 App = app
             };
+
             options?.Invoke(optionsInternal);
+
             if (optionsInternal.EnableAuthentication)
             {
                 app.UseCarpAuthenticationMiddleware(optionsInternal);
@@ -36,16 +41,19 @@ namespace Daily.Carp.Extension
                 optionsInternal.ReverseConfigApp?.Invoke(builder);
             });
 
+            CarpApp.SetRootServiceProvider(app.Services);
+
+            CarpApp.Configuration = app.Services.GetService<IConfiguration>()!;
+
             return app;
         }
     }
-    
+
+    /// <summary>
+    /// CarpAppOptions
+    /// </summary>
     public class CarpAppOptions
     {
-        ///// <summary>
-        ///// 自定义鉴权过程
-        ///// </summary>
-        //public Func<bool>? CustomAuthentication { get; set; } = null;
 
         /// <summary>
         /// 自定义鉴权
@@ -58,10 +66,6 @@ namespace Daily.Carp.Extension
         /// </summary>
         public bool EnableAuthentication { get; set; } = false;
 
-        /// <summary>
-        /// 鉴权中心的地址
-        /// </summary>
-        public string AuthenticationCenter { get; set; } = string.Empty;
 
         public WebApplication App { get; set; }
 

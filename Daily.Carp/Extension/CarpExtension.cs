@@ -21,7 +21,7 @@ namespace Daily.Carp.Extension
         public static ICarpBuilder AddCarp(this IServiceCollection service, Action<CarpOptions>? options = null)
         {
             //HttpClientFactory
-            service.AddHttpClient("nossl").ConfigurePrimaryHttpMessageHandler(() =>
+            service.AddHttpClient("IgnoreSsl").ConfigurePrimaryHttpMessageHandler(() =>
             {
                 return new HttpClientHandler()
                 {
