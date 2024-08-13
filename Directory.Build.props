@@ -1,7 +1,18 @@
 ﻿<Project>
 	
 	<PropertyGroup>
-		<Version>1.0.1</Version>
+		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>Daily</Authors>
+		<Version>1.0.1</Version>  
+		<PackageProjectUrl>https://github.com/d4ilys/Carp.Gateway</PackageProjectUrl>
+		<IsPackable>true</IsPackable>
+		<PackageIcon>logo.png</PackageIcon>
+		<RepositoryUrl>https://github.com/d4ilys/Carp.Gateway.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 	
 </Project>

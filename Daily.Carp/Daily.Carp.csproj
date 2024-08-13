@@ -1,21 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Authors>Daily</Authors>
 		<Description>基于Yarp实现的API网关</Description>
 		<PackageId>Carp.Gateway</PackageId>
 		<Product>Carp.Gateway</Product>
 		<AssemblyName>Carp.Gateway</AssemblyName>
-		<PackageProjectUrl>https://github.com/d4ilys/Carp.Gateway</PackageProjectUrl>
-		<IsPackable>true</IsPackable>
-		<PackageIcon>logo.png</PackageIcon>
-		<RepositoryUrl>https://github.com/d4ilys/Carp.Gateway.git</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 
 	<ItemGroup>
