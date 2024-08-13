@@ -45,8 +45,8 @@ app.Run();
       {
         "Descriptions": "Quick Start ",
         "ServiceName": "Demo",
-        "PathTemplate": "/api/{**catch-all}",   //客户端请求路由
-        "TransmitPathTemplate": "{**catch-all}",  //下游转发路由
+        "PathTemplate": "/api/{**catch-all}",    //客户端请求路由
+        "TransmitPathTemplate": "{**catch-all}", //下游转发路由
         "DownstreamHostAndPorts": [ "https://www.baidu.com", "https://www.jd.com" ]
       }
     ]
@@ -98,6 +98,8 @@ builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
 ~~~
 
 > 配置文件
+
+配置文件中ServiceName对应Kubernetes中的ServiceName
 
 ~~~json
  "Carp": {
