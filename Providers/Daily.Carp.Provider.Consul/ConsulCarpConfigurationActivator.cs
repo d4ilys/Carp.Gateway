@@ -16,71 +16,57 @@ namespace Daily.Carp.Provider.Consul
 {
     internal class ConsulCarpConfigurationActivator : CarpConfigurationActivator
     {
-        private static readonly object lock_obj = new object();
-
         public sealed override async Task Initialize()
         {
-            await RefreshAll();
+            await Refresh(string.Empty);
             TimingUpdate();
         }
 
-        public async Task RefreshAll()
+
+        public override async Task Refresh(string serviceName)
         {
             await FullLoad(GetServices);
         }
 
-        public override Task Refresh(string serviceName)
-        {
-            throw new NotImplementedException();
-        }
-
-        //为了防止其他状况 1分钟同步一次配置
         private void TimingUpdate()
         {
-            Task.Run(() =>
-            {
-                var timer = new Timer();
-                timer.Interval = CarpApp.GetCarpConfig().Consul.Interval;
-                timer.Elapsed += (sender, eventArgs) => { RefreshAll(); };
-                timer.Start();
-            });
+            var timer = new Timer();
+            timer.Interval = CarpApp.GetCarpConfig().Consul.Interval;
+            timer.Elapsed += (sender, eventArgs) => { _ = Refresh(string.Empty); };
+            timer.Start();
         }
 
-        private Task<IList<Service>> GetServices(string serviceName)
+        private async Task<IList<Service>> GetServices(string serviceName)
         {
-            lock (lock_obj)
+            IList<Service> services = new List<Service>();
+            var client = CarpApp.GetRootService<IConsulClientFactory>()?.Get();
+            var queryResult = await client?.Health.Service(serviceName, string.Empty, true)!;
+            foreach (var serviceEntry in queryResult.Response)
             {
-                IList<Service> services = new List<Service>();
-                var client = CarpApp.GetRootService<IConsulClientFactory>()?.Get();
-                var queryResult = client?.Health.Service(serviceName, string.Empty, true).ConfigureAwait(true)
-                    .GetAwaiter().GetResult();
-                foreach (var serviceEntry in queryResult.Response)
+                try
                 {
-                    try
+                    if (IsValid(serviceEntry))
                     {
-                        if (IsValid(serviceEntry))
+                        var nodes = await client?.Catalog.Nodes();
+                        if (nodes?.Response == null)
                         {
-                            var nodes = client?.Catalog.Nodes().ConfigureAwait(true).GetAwaiter().GetResult();
-                            if (nodes?.Response == null)
-                            {
-                                services.Add(BuildService(serviceEntry, null));
-                            }
-                            else
-                            {
-                                var serviceNode =
-                                    nodes.Response.FirstOrDefault(n => n.Address == serviceEntry.Service.Address);
-                                services.Add(BuildService(serviceEntry, serviceNode));
-                            }
+                            services.Add(BuildService(serviceEntry, null));
+                        }
+                        else
+                        {
+                            var serviceNode =
+                                nodes.Response.FirstOrDefault(n => n.Address == serviceEntry.Service.Address);
+                            services.Add(BuildService(serviceEntry, serviceNode));
                         }
                     }
-                    catch (Exception e)
-                    {
-                        continue;
-                    }
                 }
-
-                return Task.FromResult(services);
+                catch (Exception e)
+                {
+                    continue;
+                }
             }
+
+            return services;
         }
 
         private Service BuildService(ServiceEntry serviceEntry, Node? serviceNode)

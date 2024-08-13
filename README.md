@@ -32,8 +32,6 @@ builder.Services.AddCarp();
 
 var app = builder.Build();
 
-app.UseAuthorization();
-
 app.UseCarp();
 
 app.Run();
@@ -45,7 +43,7 @@ app.Run();
   "Carp": {
     "Routes": [
       {
-        "Descriptions": "简单的例子",
+        "Descriptions": "Quick Start ",
         "ServiceName": "Demo",
         "PathTemplate": "/api/{**catch-all}",   //客户端请求路由
         "TransmitPathTemplate": "{**catch-all}",  //下游转发路由
@@ -72,11 +70,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCarp().AddKubernetes();
 
-builder.Services.AddControllers();
-
 var app = builder.Build();
-
-app.UseStaticFiles();
 
 app.UseCarp();
 
@@ -97,7 +91,7 @@ builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.ClusterIP);
 
 2.Endpoint
 
-Endpoint = PodId + ContainerPort，Carp会将一个Service中的所有的Endpoint交给Yarp进行管理，当Pod发生变化时（例如滚动更新时），Carp会实时更新Yarp配置
+Endpoint = PodIP + ContainerPort，Carp会将一个Service中的所有的Endpoint交给Yarp进行管理，当Pod发生变化时（例如滚动更新时），Carp会实时更新Yarp配置
 
 ~~~c#
 builder.Services.AddCarp().AddKubernetes(KubeDiscoveryType.EndPoint);
@@ -252,7 +246,7 @@ rules:
   resources:
   - endpoints
   - pods
-  - service
+  - services
   verbs:
   - get
   - list
