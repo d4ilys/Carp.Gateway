@@ -50,7 +50,7 @@ namespace Daily.Carp.Configuration
                     // ignored
                 }
 
-                CarpApp.LogInfo($"{DateTime.Now}:监听到配置文件发生改变，配置已更新..");
+                CarpApp.LogInfo($"{DateTime.Now}:Configuration updated..");
             });
         }
 

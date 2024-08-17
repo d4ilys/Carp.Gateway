@@ -38,18 +38,7 @@ app.UseStaticFiles();
 
 app.UseCors("CorsPolicy");
 
-app.UseCarp(options =>
-{
-    options.EnableAuthentication = true; //启用权限验证
-    options.CustomAuthenticationAsync.Add("Jwt", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
-    {
-        var flag = true;
-        //验证逻辑
-        flag = false;
-        //.....
-        return await Task.FromResult(flag);
-    });
-});
+app.UseCarp();
 
 
 app.MapControllers();

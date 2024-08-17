@@ -79,7 +79,10 @@ namespace Daily.Carp.Provider.Kubernetes
                                 }
                             }
                         },
-                        error => LogError($"Listening to pod fail.{Environment.NewLine}Message: {error.Message}"),
+                        error =>
+                        {
+                            LogError($"Listening to pod fail.{Environment.NewLine}Message: {error.Message}");
+                        },
                         () =>
                         {
                             var limiter = Cache.GetOrCreate(RetryWatchLimit, entry =>
