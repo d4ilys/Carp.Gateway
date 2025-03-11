@@ -3,7 +3,7 @@
 🍧 [**概述**](#概述)  <br />
 ✨ [Quick Start](#quick-start) <br />
 ☁️ [集成Kubernetes](#kubernetes) <br />🎭 [Kubernetes无感升级](#Kubernetes实现用户无感升级) <br />🍢 [集成Consul](#consul) <br />
-⚓ [普通代理模式](#普通代理模式) <br />🥨 [错误重试](#错误重试) <br />🎡 [权限验证](#权限验证) <br />🎉 [GRPC](#GRPC) <br />👍 [WebSocket](#WebSocket) <br />🧊 [集成Swagger](#集成swagger) <br />
+⚓ [普通代理模式](#普通代理模式) <br />✨ [IP黑白名单](#IP黑白名单) <br />🥨 [错误重试](#错误重试) <br />🎡 [权限验证](#权限验证) <br />🎉 [GRPC](#GRPC) <br />👍 [WebSocket](#WebSocket) <br />🧊 [集成Swagger](#集成swagger) <br />
 
 #### **概述**
 
@@ -397,7 +397,7 @@ app.Run();
 ~~~
 
 
-> 根据域名转发
+> 根据Hosts转发
 
 ~~~json
 {
@@ -524,7 +524,41 @@ app.UseCarp(options =>
   }
 ~~~
 
+#### IP黑白名单
 
+~~~json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "Carp": {
+    "Routes": [
+      {
+        "Descriptions": "根据域名转发京东",
+        "ServiceName": "Jd",
+        "Hosts": [ "jd.daily.com" ], //根据HostName转发
+        "PathTemplate": "{**catch-all}", 
+        "TransmitPathTemplate": "{**catch-all}", 
+        "DownstreamHostAndPorts": [ "http://www.jd.com"],
+        "IpWhiteList": ["192.168.1.11","192.168.1.12"]  //只有这两个IP请求才有效，其他请求均401
+      },{
+        "Descriptions": "根据域名转发百度",
+        "ServiceName": "Baidu",
+        "Hosts": [ "baidu.daily.com" ], //根据HostName转发
+        "PathTemplate": "{**catch-all}", 
+        "TransmitPathTemplate": "{**catch-all}", 
+        "DownstreamHostAndPorts": [ "http://www.baidu.com"],
+        "IpBlackList": ["192.168.2.11","192.168.2.12"]  //只有这两个IP请求返回401，其他IP请求均有效
+      }
+    ] 
+  },
+  "AllowedHosts": "*"
+} 
+ 
+~~~
 
 #### 错误重试
 

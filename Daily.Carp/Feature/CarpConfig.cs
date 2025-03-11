@@ -118,7 +118,12 @@
         /// <summary>
         /// IP白名单
         /// </summary>
-        public List<string>? IpWhites { get; set; }
+        public List<string>? IpWhiteList { get; set; }
+
+        /// <summary>
+        /// IP黑名单
+        /// </summary>
+        public List<string>? IpBlackList { get; set; }
     }
 
 

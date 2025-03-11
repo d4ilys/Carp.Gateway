@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Daily.Carp.IpWhites;
+using Daily.Carp.IpHandle;
 using Daily.Carp.Retry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
@@ -38,7 +38,7 @@ namespace Daily.Carp.Extension
 
             app.MapReverseProxy(builder =>
             {
-                builder.UseMiddleware<IpWhitesMiddleware>();
+                builder.UseMiddleware<IpLimitationMiddleware>();
                 builder.UseMiddleware<RetryMiddleware>();
                 optionsInternal.ReverseConfigApp?.Invoke(builder);
             });

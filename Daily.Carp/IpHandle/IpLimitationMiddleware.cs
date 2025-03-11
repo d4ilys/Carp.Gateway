@@ -1,15 +1,13 @@
 ﻿using System.Text;
 using Daily.Carp.Extension;
-using Daily.Carp.Feature;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 
-namespace Daily.Carp.IpWhites;
+namespace Daily.Carp.IpHandle;
 
 /// <summary>
-/// 重试中间件
+/// IP限制中间件
 /// </summary>
-public class IpWhitesMiddleware
+public class IpLimitationMiddleware
 {
     private readonly RequestDelegate _next;
 
@@ -17,7 +15,7 @@ public class IpWhitesMiddleware
     /// Constructor
     /// </summary>
     /// <param name="next"></param>
-    public IpWhitesMiddleware(RequestDelegate next)
+    public IpLimitationMiddleware(RequestDelegate next)
     {
         _next = next;
     }
@@ -31,21 +29,39 @@ public class IpWhitesMiddleware
         var carpReverseProxyFeature = context.GetCarpReverseProxyFeature();
         var config = carpReverseProxyFeature.CarpRouteConfig;
         var ip = context.Connection?.RemoteIpAddress?.MapToIPv4()?.ToString();
-        if (config is { IpWhites: not null })
+        switch (config)
         {
-            //验证IP是否在白名单中
-            if (config.IpWhites.Any(s => s == ip))
+            case { IpWhiteList: not null }:
             {
+                //验证IP是否在白名单中
+                if (config.IpWhiteList.Any(s => s == ip))
+                {
+                    await _next(context);
+                }
+                else
+                {
+                    await ResultMessageAsync(context, "no permission.");
+                }
+
+                break;
+            }
+            case { IpBlackList: not null }:
+            {
+                //验证IP是否在黑名单中
+                if (config.IpBlackList.Any(s => s == ip))
+                {
+                    await ResultMessageAsync(context, "no permission.");
+                }
+                else
+                {
+                    await _next(context);
+                }
+
+                break;
+            }
+            default:
                 await _next(context);
-            }
-            else
-            {
-                await ResultMessageAsync(context, "no permission.");
-            }
-        }
-        else
-        {
-            await _next(context);
+                break;
         }
     }
 
