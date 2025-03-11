@@ -114,6 +114,11 @@
         /// 重试策略
         /// </summary>
         public RetryPolicy? RetryPolicy { get; set; }
+
+        /// <summary>
+        /// IP白名单
+        /// </summary>
+        public List<string>? IpWhites { get; set; }
     }
 
 
