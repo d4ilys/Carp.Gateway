@@ -688,7 +688,7 @@ app.Run();
 
 #### Docker部署
 
-~~~shell
+~~~powershell
 docker run -d \
   --restart always \
   --name carp-gateway \
