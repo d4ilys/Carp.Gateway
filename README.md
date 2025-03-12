@@ -3,7 +3,7 @@
 🍧 [**概述**](#概述)  <br />
 ✨ [Quick Start](#quick-start) <br />
 ☁️ [集成Kubernetes](#kubernetes) <br />🎭 [Kubernetes无感升级](#Kubernetes实现用户无感升级) <br />🍢 [集成Consul](#consul) <br />
-⚓ [普通代理模式](#普通代理模式) <br />🌈 [IP黑白名单](#IP黑白名单) <br />🥨 [错误重试](#错误重试) <br />🎡 [权限验证](#权限验证) <br />🎉 [GRPC](#GRPC) <br />👍 [WebSocket](#WebSocket) <br />🧊 [集成Swagger](#集成swagger) <br />
+⚓ [普通代理模式](#普通代理模式) <br />🌈 [IP黑白名单](#IP黑白名单) <br />🥨 [错误重试](#错误重试) <br />🎡 [权限验证](#权限验证) <br />🎉 [GRPC](#GRPC) <br />👍 [WebSocket](#WebSocket) <br />🪼 [集成Swagger](#集成swagger) <br />🐋 [Docker部署](#Docker部署) <br />
 
 #### **概述**
 
@@ -686,3 +686,83 @@ app.Run();
 
 ![image](https://github.com/luoyunchong/IGeekFan.AspNetCore.Knife4jUI/assets/54463101/d011c6c1-e782-49e3-95d0-9de35a2f9fe4)
 
+#### Docker部署
+
+~~~shell
+docker run -d \
+  --restart always \
+  --name carp-gateway \
+  -p 80:80 \
+  -p 443:443 \
+  -v /root/gateway/appsettings.json:/app/appsettings.json \
+  -v /root/gateway/certificates:/app/certificates \
+  registry.cn-hangzhou.aliyuncs.com/dailyccc/carp.gateway:1.0.2
+~~~
+
+> 推荐使用docker-compose进行部署
+
+~~~yaml
+version: '3'
+services:
+  carp-gateway:
+    image: registry.cn-hangzhou.aliyuncs.com/dailyccc/carp.gateway:1.0.2
+    restart: always
+    container_name: carp-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./appsettings.json:/app/appsettings.json"
+      - "./certificates:/app/certificates"
+~~~
+
+> appsettings.json挂载配置
+
+~~~json
+{
+    "Ports": [
+      {
+        "Port": 80,
+        "Protocol": "http"
+      },
+      {
+        "Port": 443,
+        "Protocol": "https",
+        "Certificates": [
+          {
+            "DomainName": "daily.cn",
+            "PfxPath": "certificates/daily.cn.pfx",
+            "PfxPassword": "xxxxxxx"
+          },
+          {
+            "DomainName": "d4ilys.cn",
+            "PemPath": "certificates/d4ilys.cn.pem",
+            "KeyPemPath": "certificates/d4ilys.cn.key"
+          }
+      }
+    ],
+    "Carp": {
+      "Routes": [
+        {
+          "Descriptions": "Apollo",
+          "ServiceName": "nacos",
+          "PathTemplate": "{**catch-all}",
+          "Hosts": [ "nacos.daily.cn" ],
+          "TransmitPathTemplate": "{**catch-all}",
+          "DownstreamHostAndPorts": [ "http://192.169.0.2:9080" ],
+          "IpWhiteList": [
+            "123.17.168.234"
+          ]
+        },
+        {
+          "Descriptions": "Nacos",
+          "ServiceName": "nacos",
+          "PathTemplate": "{**catch-all}",
+          "Hosts": [ "nacos.d4ilys.cn" ],
+          "TransmitPathTemplate": "{**catch-all}",
+          "DownstreamHostAndPorts": [ "http://192.169.0.3:8080" ]
+        }
+      ] 
+    }
+  }
+~~~
