@@ -411,17 +411,13 @@ app.Run();
       {
         "Descriptions": "Jd域名转发",
         "ServiceName": "Jd",
-        "PathTemplate": "{**catch-all}",
         "Hosts": [ "jd.daily.com" ],
-        "TransmitPathTemplate": "{**catch-all}", 
         "DownstreamHostAndPorts": [ "https://jd.com" ]
       },
       {
         "Descriptions": "Baidu域名转发",
         "ServiceName": "Baidu",
-        "PathTemplate": "{**catch-all}",
         "Hosts": [ "baidu.daily.com" ],
-        "TransmitPathTemplate": "{**catch-all}", //下游转发路由  
         "DownstreamHostAndPorts": ["https://baidu.com" ]
       }    
     ] 
@@ -474,7 +470,6 @@ app.Run();
 ~~~c#
 app.UseCarp(options =>
 {
-    options.EnableAuthentication = true; //启用权限验证
     options.CustomAuthenticationAsync.Add("Jwt", async () => //这里的 “Jwt” 对应的是配置文件中的PermissionsValidation数组中的值
     {
         //自定义鉴权逻辑

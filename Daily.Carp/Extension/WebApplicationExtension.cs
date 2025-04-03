@@ -31,7 +31,7 @@ namespace Daily.Carp.Extension
 
             options?.Invoke(optionsInternal);
 
-            if (optionsInternal.EnableAuthentication)
+            if (optionsInternal.CustomAuthenticationAsync.Any())
             {
                 app.UseCarpAuthenticationMiddleware(optionsInternal);
             }
@@ -61,12 +61,6 @@ namespace Daily.Carp.Extension
         /// </summary>
         public Dictionary<string, Func<Task<bool>>> CustomAuthenticationAsync { get; set; } =
             new Dictionary<string, Func<Task<bool>>>();
-
-        /// <summary>
-        /// 是否开启权限验证
-        /// </summary>
-        public bool EnableAuthentication { get; set; } = false;
-
 
         public WebApplication App { get; set; }
 

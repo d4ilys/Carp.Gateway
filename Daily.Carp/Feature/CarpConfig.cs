@@ -93,7 +93,7 @@
         /// <summary>
         /// 客户端请求路由模板
         /// </summary>
-        public string PathTemplate { get; set; }
+        public string PathTemplate { get; set; } = "{**catch-all}";
 
         /// <summary>
         /// 主机
@@ -103,7 +103,7 @@
         /// <summary>
         /// 转发路由模板
         /// </summary>
-        public string TransmitPathTemplate { get; set; }
+        public string TransmitPathTemplate { get; set; } = "{**catch-all}";
 
         /// <summary>
         /// 负载均衡策略
