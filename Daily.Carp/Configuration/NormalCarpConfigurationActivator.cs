@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Daily.Carp.Feature;
 using Daily.Carp.Yarp;
@@ -15,9 +16,9 @@ namespace Daily.Carp.Configuration
     {
         public override async Task Initialize()
         {
-            var carpConfig = CarpApp.GetCarpConfig();
             await FullLoad(serviceName =>
             {
+                var carpConfig = CarpApp.GetCarpConfig();
                 IList<Service> services = new List<Service>();
                 var serviceRouteConfig = carpConfig.Routes.First(c => c.ServiceName == serviceName);
                 foreach (var downstreamHostAndPort in serviceRouteConfig.DownstreamHostAndPorts)
@@ -35,15 +36,30 @@ namespace Daily.Carp.Configuration
             Watch();
         }
 
+        private static CarpConfig? _cacheCarpConfig = null;
+
         private void Watch()
         {
             ChangeToken.OnChange(CarpApp.Configuration.GetReloadToken, () =>
             {
-                CarpApp.CarpConfig = CarpApp.Configuration.GetSection("Carp").Get<CarpConfig>();
-
                 try
                 {
-                    Initialize();
+                    if (_cacheCarpConfig == null)
+                    {
+                        _cacheCarpConfig = CarpApp.CarpConfig;
+                        _ = Initialize();
+                    }
+                    else
+                    {
+                        var cacheConfig = JsonSerializer.Serialize(_cacheCarpConfig);
+                        var latestConfig = JsonSerializer.Serialize(CarpApp.CarpConfig);
+                        //判断是否更新
+                        if (cacheConfig != latestConfig)
+                        {
+                            _cacheCarpConfig = CarpApp.CarpConfig;
+                            _ = Initialize();
+                        }
+                    }
                 }
                 catch
                 {
@@ -69,12 +85,11 @@ namespace Daily.Carp.Configuration
             return res;
         }
 
-
         public override async Task Refresh(string serviceName)
         {
-            var carpConfig = CarpApp.GetCarpConfig();
             await LocalLoad(name =>
             {
+                var carpConfig = CarpApp.GetCarpConfig();
                 IList<Service> services = new List<Service>();
                 var serviceRouteConfig = carpConfig.Routes.First(c => c.ServiceName == name);
                 foreach (var downstreamHostAndPort in serviceRouteConfig.DownstreamHostAndPorts)

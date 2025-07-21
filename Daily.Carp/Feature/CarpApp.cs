@@ -46,23 +46,13 @@ namespace Daily.Carp
             return _serviceRootProvider.GetService<T>();
         }
 
-        public static CarpConfig? CarpConfig { get; set; } = null;
+        public static CarpConfig? CarpConfig => Configuration.GetSection("Carp").Get<CarpConfig>();
 
         /// <summary>
         /// 读取Carp配置
         /// </summary>
         /// <returns></returns>
-        public static CarpConfig GetCarpConfig()
-        {
-            if (CarpConfig == null)
-            {
-                var c = Configuration.GetSection("Carp").Get<CarpConfig>();
-                CarpConfig = c;
-                return c;
-            }
-
-            return CarpConfig;
-        }
+        public static CarpConfig GetCarpConfig() => CarpConfig;
 
         private static readonly ConcurrentDictionary<string, int> Polling = new ConcurrentDictionary<string, int>();
 

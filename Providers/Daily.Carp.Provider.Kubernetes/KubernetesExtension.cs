@@ -27,7 +27,7 @@ namespace Daily.Carp.Extension
 
             builder.Service.AddMemoryCache();
 
-            builder.HostedServiceDelegate = async provider =>
+            builder.Service.AddSingleton(provider =>
             {
                 CarpConfigurationActivator activator;
 
@@ -36,7 +36,13 @@ namespace Daily.Carp.Extension
                 else
                     activator = new KubernetesWatchPodCarpConfigurationActivator();
 
-                await activator.Initialize();
+                return activator;
+            });
+
+            builder.HostedServiceDelegate = async provider =>
+            {
+                var activator = provider.GetService<CarpConfigurationActivator>();
+                await activator!.Initialize();
             };
         }
     }

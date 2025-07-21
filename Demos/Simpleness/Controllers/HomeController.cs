@@ -7,9 +7,10 @@ namespace Simpleness.Controllers
     [ApiController]
     public class HomeController : ControllerBase
     {
-        public string Index()
+        public string AddService(string serviceName)
         {
             return "1111";
         }
+
     }
 }

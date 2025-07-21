@@ -48,10 +48,16 @@ namespace Daily.Carp.Extension
                 option.ReverseProxyBuilderInject?.Invoke(reverseProxyBuilder);
             }
 
+            builder.Service.AddSingleton(provider =>
+            {
+                CarpConfigurationActivator activator = new NormalCarpConfigurationActivator();
+                return activator;
+            });
+
             builder.HostedServiceDelegate = async provider =>
             {
-                var activator = new NormalCarpConfigurationActivator();
-                await activator.Initialize();
+                var activator = provider.GetService<CarpConfigurationActivator>();
+                await activator!.Initialize();
             };
 
             builder.Service.AddHostedService(serviceProvider => new CarpHostedService(serviceProvider, builder));

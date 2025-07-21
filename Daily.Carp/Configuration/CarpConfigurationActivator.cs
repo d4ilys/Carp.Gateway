@@ -15,7 +15,8 @@ namespace Daily.Carp.Configuration
         /// <summary>
         /// Yarp核心配置提供者
         /// </summary>
-        private readonly CarpProxyConfigProvider _yarpConfigProvider  = CarpApp.GetRootService<CarpProxyConfigProvider>()!;
+        private readonly CarpProxyConfigProvider _yarpConfigProvider =
+            CarpApp.GetRootService<CarpProxyConfigProvider>()!;
 
         /// <summary>
         /// 初始化
@@ -29,12 +30,15 @@ namespace Daily.Carp.Configuration
         public abstract Task Refresh(string serviceName);
 
         /// <summary>
-        /// 按服务名称注入配置
+        /// 注入全部配置
         /// </summary>
         public virtual async Task FullLoad(Func<string, Task<IList<Service>>> addressFunc)
         {
-            var result = await YarpAdapter(addressFunc);
-            _yarpConfigProvider.Refresh(result.Item2, result.Item1);
+            if (CarpApp.GetCarpConfig().Routes.Any())
+            {
+                var result = await YarpAdapter(addressFunc);
+                _yarpConfigProvider.Refresh(result.Item2, result.Item1);
+            }
         }
 
         /// <summary>
@@ -42,8 +46,11 @@ namespace Daily.Carp.Configuration
         /// </summary>
         public virtual async Task LocalLoad(Func<string, Task<IList<Service>>> addressFunc, string serviceName)
         {
-            var result = await RefreshYarpAdapter(addressFunc, serviceName);
-            _yarpConfigProvider.Refresh(result.Item2, result.Item1);
+            if (CarpApp.GetCarpConfig().Routes.Any())
+            {
+                var result = await RefreshYarpAdapter(addressFunc, serviceName);
+                _yarpConfigProvider.Refresh(result.Item2, result.Item1);
+            }
         }
 
         /// <summary>
@@ -144,12 +151,10 @@ namespace Daily.Carp.Configuration
                 {
                     continue;
                 }
-      
+
                 CarpApp.LogInfo(
                     $"{DateTime.Now} {service.ServiceName} - Endpoint refresh to complete.");
             }
-
-    
 
             return new Tuple<IReadOnlyList<ClusterConfig>, IReadOnlyList<RouteConfig>>(clusterConfigs, routeConfigs);
         }
@@ -186,7 +191,7 @@ namespace Daily.Carp.Configuration
                     var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
                     if (!service.DownstreamHostAndPorts.Any())
                     {
-                        var address =  await addressFunc.Invoke(service.ServiceName);
+                        var address = await addressFunc.Invoke(service.ServiceName);
 
                         foreach (var item in address)
                         {

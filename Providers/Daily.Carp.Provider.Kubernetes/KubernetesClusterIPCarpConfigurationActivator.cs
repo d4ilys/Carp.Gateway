@@ -15,9 +15,9 @@ namespace Daily.Carp.Provider.Kubernetes
         public override async Task Refresh(string serviceName)
         {
             if (string.IsNullOrWhiteSpace(serviceName))
-                await FullLoad(async s => await KubernetesGainer.GetServiceInternalPointAddress(s));
+                await FullLoad(async s => await KubernetesGainer.GetServiceClusterIp(s));
             else
-                await LocalLoad(async s => await KubernetesGainer.GetServiceInternalPointAddress(serviceName),
+                await LocalLoad(async s => await KubernetesGainer.GetServiceClusterIp(serviceName),
                     serviceName);
 
             LogInfo($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} Configuration refresh.");

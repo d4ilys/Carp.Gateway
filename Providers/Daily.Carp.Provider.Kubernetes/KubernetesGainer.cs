@@ -81,7 +81,7 @@ namespace Daily.Carp.Provider.Kubernetes
         /// </summary>
         /// <param name="serviceName"></param>
         /// <returns></returns>
-        public static async Task<IList<Service>> GetServiceInternalPointAddress(string serviceName)
+        public static async Task<IList<Service>> GetServiceClusterIp(string serviceName)
         {
             var services = new List<Service>();
 
