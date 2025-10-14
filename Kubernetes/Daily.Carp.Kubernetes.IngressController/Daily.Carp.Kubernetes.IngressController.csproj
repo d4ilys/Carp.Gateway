@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>Daily</Authors>
+		<Version>1.0.3</Version>
+		<PackageProjectUrl>https://github.com/d4ilys/Carp.Gateway</PackageProjectUrl>
+		<IsPackable>true</IsPackable>
+		<PackageIcon>logo.png</PackageIcon>
+		<RepositoryUrl>https://github.com/d4ilys/Carp.Gateway.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<Description>Carp.Gateway Kubernetes Ingress扩展包</Description>
+		<PackageId>Carp.Gateway.Kubernetes.IngressController</PackageId>
+		<Product>Carp.Gateway.Kubernetes.IngressController</Product>
+		<AssemblyName>Carp.Gateway.Kubernetes.IngressController</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="KubernetesClient" Version="18.0.4" />
+		<PackageReference Include="Yarp.ReverseProxy" Version="2.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="logo.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+</Project>
