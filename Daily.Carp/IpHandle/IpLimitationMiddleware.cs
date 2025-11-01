@@ -28,7 +28,8 @@ public class IpLimitationMiddleware
     {
         var carpReverseProxyFeature = context.GetCarpReverseProxyFeature();
         var config = carpReverseProxyFeature.CarpRouteConfig;
-        var ip = context.Connection?.RemoteIpAddress?.MapToIPv4()?.ToString();
+        var ip = GetIpAddress(context);
+
         switch (config)
         {
             case { IpWhiteList: not null }:
@@ -63,6 +64,16 @@ public class IpLimitationMiddleware
                 await _next(context);
                 break;
         }
+    }
+    private string? GetIpAddress(HttpContext context)
+    {
+        // 兼容反向代理 
+        if (context.Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
+        {
+            return forwardedFor;
+        }
+
+        return context.Connection?.RemoteIpAddress?.MapToIPv4()?.ToString();
     }
 
     private async Task ResultMessageAsync(HttpContext httpContext, string message)

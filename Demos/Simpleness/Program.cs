@@ -1,9 +1,5 @@
-using System.Text;
 using Daily.Carp;
 using Daily.Carp.Extension;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.Primitives;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +7,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddCarp();
+builder.Services.AddCarp(options =>
+{
+    options.CarpConfigDelegate = provider =>
+    {
+        var config = provider.GetRequiredService<IConfiguration>();
+        var carpConfig = config.GetSection("Carps").Get<CarpConfig>();
+        return carpConfig;
+    };
+});
 
 var app = builder.Build();
 

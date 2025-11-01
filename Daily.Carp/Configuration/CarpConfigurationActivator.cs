@@ -34,6 +34,7 @@ namespace Daily.Carp.Configuration
         /// </summary>
         public virtual async Task FullLoad(Func<string, Task<IList<Service>>> addressFunc)
         {
+
             if (CarpApp.GetCarpConfig().Routes.Any())
             {
                 var result = await YarpAdapter(addressFunc);
@@ -100,52 +101,59 @@ namespace Daily.Carp.Configuration
 
 
                     var clusterId = $"ClusterId-{service.ServiceName}";
-                    ClusterConfig clusterConfig = new ClusterConfig
+                    if (clusterConfigs.All(x => x.ClusterId != clusterId))
                     {
-                        ClusterId = clusterId,
-                        LoadBalancingPolicy = service.LoadBalancerOptions,
-                        Destinations = destinations,
-                        HttpClient = new HttpClientConfig
+                        ClusterConfig clusterConfig = new ClusterConfig
                         {
-                            DangerousAcceptAnyServerCertificate = true
-                        },
-                        HttpRequest = service.HttpVersion == "2"
-                            ? new ForwarderRequestConfig()
+                            ClusterId = clusterId,
+                            LoadBalancingPolicy = service.LoadBalancerOptions,
+                            Destinations = destinations,
+                            HttpClient = new HttpClientConfig
                             {
-                                ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
-                            }
-                            : new ForwarderRequestConfig()
-                            {
-                                Version = new Version(service.HttpVersion),
-                                VersionPolicy = HttpVersionPolicy.RequestVersionExact,
-                                ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
-                            }
-                    };
-                    clusterConfigs.Add(clusterConfig);
+                                DangerousAcceptAnyServerCertificate = true
+                            },
+                            HttpRequest = service.HttpVersion == "2"
+                                ? new ForwarderRequestConfig()
+                                {
+                                    ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
+                                }
+                                : new ForwarderRequestConfig()
+                                {
+                                    Version = new Version(service.HttpVersion),
+                                    VersionPolicy = HttpVersionPolicy.RequestVersionExact,
+                                    ActivityTimeout = TimeSpan.FromMinutes(service.ActivityTimeout)
+                                }
+                        };
+                        clusterConfigs.Add(clusterConfig);
+                    }
+
 
                     var routeId = $"RouteId-{service.ServiceName}";
 
-                    var transforms = new List<IReadOnlyDictionary<string, string>>();
-                    if (!string.IsNullOrWhiteSpace(service.TransmitPathTemplate))
+                    if (routeConfigs.All(r => r.RouteId != routeId))
                     {
-                        transforms.Add(new Dictionary<string, string>()
+                        var transforms = new List<IReadOnlyDictionary<string, string>>();
+                        if (!string.IsNullOrWhiteSpace(service.TransmitPathTemplate))
                         {
-                            { "PathPattern", service.TransmitPathTemplate }
-                        });
-                    }
+                            transforms.Add(new Dictionary<string, string>()
+                            {
+                                { "PathPattern", service.TransmitPathTemplate }
+                            });
+                        }
 
-                    RouteConfig routeConfig = new RouteConfig
-                    {
-                        RouteId = routeId,
-                        ClusterId = clusterId,
-                        Match = new RouteMatch
+                        RouteConfig routeConfig = new RouteConfig
                         {
-                            Path = service.PathTemplate,
-                            Hosts = service.Hosts
-                        },
-                        Transforms = transforms.Any() ? transforms : null
-                    };
-                    routeConfigs.Add(routeConfig);
+                            RouteId = routeId,
+                            ClusterId = clusterId,
+                            Match = new RouteMatch
+                            {
+                                Path = service.PathTemplate,
+                                Hosts = service.Hosts
+                            },
+                            Transforms = transforms.Any() ? transforms : null
+                        };
+                        routeConfigs.Add(routeConfig);
+                    }
                 }
                 catch
                 {

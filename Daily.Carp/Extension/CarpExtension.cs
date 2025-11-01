@@ -38,14 +38,13 @@ namespace Daily.Carp.Extension
             var reverseProxyBuilder = service.AddReverseProxy()
                 .LoadFormCustom(builder.ProxyConfigProvider);
 
+            var carpOptions = new CarpOptions();
             //扩展注入
             if (options != null)
             {
-                CarpOptions option = new CarpOptions();
+                options.Invoke(carpOptions);
 
-                options.Invoke(option);
-
-                option.ReverseProxyBuilderInject?.Invoke(reverseProxyBuilder);
+                carpOptions.ReverseProxyBuilderInject?.Invoke(reverseProxyBuilder);
             }
 
             builder.Service.AddSingleton(provider =>
@@ -56,6 +55,16 @@ namespace Daily.Carp.Extension
 
             builder.HostedServiceDelegate = async provider =>
             {
+                if (carpOptions.CarpConfigDelegate != null)
+                {
+                    CarpApp.SetCarpConfigFunc(() => carpOptions.CarpConfigDelegate(provider));
+                }
+
+                if (carpOptions.CarpConfig != null)
+                {
+                    CarpApp.SetCarpConfigFunc(() => carpOptions.CarpConfig);
+                }
+
                 var activator = provider.GetService<CarpConfigurationActivator>();
                 await activator!.Initialize();
             };
@@ -99,5 +108,15 @@ namespace Daily.Carp.Extension
     public class CarpOptions
     {
         public Action<IReverseProxyBuilder> ReverseProxyBuilderInject { get; set; } = null;
+
+        /// <summary>
+        ///  自定义配置委托，每次获取都会执行该委托
+        /// </summary>
+        public Func<IServiceProvider, CarpConfig>? CarpConfigDelegate { get; set; } = null;
+
+        /// <summary>
+        /// 自定义配置
+        /// </summary>
+        public CarpConfig? CarpConfig { get; set; } = null;
     }
 }

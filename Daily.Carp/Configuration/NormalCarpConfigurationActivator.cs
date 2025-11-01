@@ -46,17 +46,17 @@ namespace Daily.Carp.Configuration
                 {
                     if (_cacheCarpConfig == null)
                     {
-                        _cacheCarpConfig = CarpApp.CarpConfig;
+                        _cacheCarpConfig = CarpApp.GetCarpConfig();
                         _ = Initialize();
                     }
                     else
                     {
                         var cacheConfig = JsonSerializer.Serialize(_cacheCarpConfig);
-                        var latestConfig = JsonSerializer.Serialize(CarpApp.CarpConfig);
+                        var latestConfig = JsonSerializer.Serialize(CarpApp.GetCarpConfig());
                         //判断是否更新
                         if (cacheConfig != latestConfig)
                         {
-                            _cacheCarpConfig = CarpApp.CarpConfig;
+                            _cacheCarpConfig = CarpApp.GetCarpConfig();
                             _ = Initialize();
                         }
                     }

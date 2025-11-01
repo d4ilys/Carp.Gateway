@@ -51,7 +51,7 @@ namespace Daily.Carp.Provider.Kubernetes
                     eventStream.Select(resourceEvent => resourceEvent.Resource).Subscribe(subsequentEvent =>
                         {
                             var serviceName = subsequentEvent.Metadata.Labels["app"];
-                            if (CarpApp.CarpConfig!.Routes.All(c => c.ServiceName != serviceName))
+                            if (CarpApp.GetCarpConfig()!.Routes.All(c => c.ServiceName != serviceName))
                             {
                                 return;
                             }
@@ -79,10 +79,7 @@ namespace Daily.Carp.Provider.Kubernetes
                                 }
                             }
                         },
-                        error =>
-                        {
-                            LogError($"Listening to pod fail.{Environment.NewLine}Message: {error.Message}");
-                        },
+                        error => { LogError($"Listening to pod fail.{Environment.NewLine}Message: {error.Message}"); },
                         () =>
                         {
                             var limiter = Cache.GetOrCreate(RetryWatchLimit, entry =>

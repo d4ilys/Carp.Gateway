@@ -38,12 +38,6 @@ namespace Daily.Carp.Extension
 
                 return activator;
             });
-
-            builder.HostedServiceDelegate = async provider =>
-            {
-                var activator = provider.GetService<CarpConfigurationActivator>();
-                await activator!.Initialize();
-            };
         }
     }
 }

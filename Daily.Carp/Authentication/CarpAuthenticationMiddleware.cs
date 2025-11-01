@@ -37,7 +37,7 @@ namespace Daily.LinkTracking
                 }
 
                 var needVerification =
-                    CarpApp.CarpConfig.Routes.Any(c =>
+                    CarpApp. GetCarpConfig().Routes.Any(c =>
                     {
                         var startsWith = c.PermissionsValidation.Any() && c.PathTemplate.ToLower().StartsWith(routePath.ToLower());
                         return startsWith;
@@ -46,7 +46,7 @@ namespace Daily.LinkTracking
                 if (needVerification)
                 {
                     //自定义授权
-                    var carpRouteConfig = CarpApp.CarpConfig.Routes.FirstOrDefault(c => c.PathTemplate.ToLower().StartsWith(routePath.ToLower()));
+                    var carpRouteConfig = CarpApp.GetCarpConfig().Routes.FirstOrDefault(c => c.PathTemplate.ToLower().StartsWith(routePath.ToLower()));
                     var permissionVerificationGroups = carpRouteConfig?.PermissionsValidation;
                     if (permissionVerificationGroups != null)
                     {

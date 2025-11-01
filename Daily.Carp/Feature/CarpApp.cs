@@ -46,13 +46,26 @@ namespace Daily.Carp
             return _serviceRootProvider.GetService<T>();
         }
 
-        public static CarpConfig? CarpConfig => Configuration.GetSection("Carp").Get<CarpConfig>();
+        private static Func<CarpConfig?> _carpConfigFunc = () => Configuration?.GetSection("Carp").Get<CarpConfig>();
 
         /// <summary>
         /// 读取Carp配置
         /// </summary>
         /// <returns></returns>
-        public static CarpConfig GetCarpConfig() => CarpConfig;
+        public static CarpConfig GetCarpConfig()
+        {
+            var carpConfig = _carpConfigFunc();
+            return carpConfig ?? throw new Exception("CarpConfig is null");
+        }
+
+        /// <summary>
+        /// 设置Carp配置
+        /// </summary>
+        /// <param name="carpConfigFunc"></param>
+        public static void SetCarpConfigFunc(Func<CarpConfig> carpConfigFunc)
+        {
+            _carpConfigFunc = carpConfigFunc;
+        }
 
         private static readonly ConcurrentDictionary<string, int> Polling = new ConcurrentDictionary<string, int>();
 
@@ -62,7 +75,7 @@ namespace Daily.Carp
         /// <param name="info"></param>
         public static void LogInfo(string info)
         {
-            if (CarpConfig != null && CarpApp.CarpConfig.ShowLogInformation)
+            if (GetCarpConfig().ShowLogInformation)
             {
                 var log = GetRootService<ILogger<CarpApp>>();
                 if (log != null)

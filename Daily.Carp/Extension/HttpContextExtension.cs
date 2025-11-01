@@ -31,7 +31,7 @@ namespace Daily.Carp.Extension
 
             var serviceName = CarpApp.GetCarpServiceByClusterId(configClusterId);
 
-            var carpRouteConfig = CarpApp.CarpConfig?.Routes.FirstOrDefault(m => m.ServiceName == serviceName);
+            var carpRouteConfig = CarpApp.GetCarpConfig().Routes.FirstOrDefault(m => m.ServiceName == serviceName);
 
             carpReverseProxyFeature.CarpRouteConfig = carpRouteConfig;
 
