@@ -39,6 +39,7 @@ namespace Daily.Carp.Extension
                 .LoadFormCustom(builder.ProxyConfigProvider);
 
             var carpOptions = new CarpOptions();
+
             //扩展注入
             if (options != null)
             {
@@ -66,6 +67,7 @@ namespace Daily.Carp.Extension
                 }
 
                 var activator = provider.GetService<CarpConfigurationActivator>();
+
                 await activator!.Initialize();
             };
 
